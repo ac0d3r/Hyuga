@@ -67,3 +67,5 @@ class GlobalFilter:
                 dns_record_success(resp)
             except redis.exceptions.ConnectionError:
                 raise DatabaseError(ERR_DATABASE_CONNECTION)
+            # 指向其他不存在的路由
+            req.path = "/dev/null"
