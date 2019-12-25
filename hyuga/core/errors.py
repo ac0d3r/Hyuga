@@ -35,6 +35,12 @@ ERR_DATABASE_ROLLBACK = {
     'title': 'Database Rollback Error'
 }
 
+ERR_DATABASE_CONNECTION = {
+    'status': falcon.HTTP_500,
+    'code': 76,
+    'title': 'Database Connection Error'
+}
+
 ERR_NOT_SUPPORTED = {
     'status': falcon.HTTP_404,
     'code': 10,
@@ -102,8 +108,9 @@ class DatabaseError(AppError):
     def __init__(self, error, args=None, params=None):
         super().__init__(error)
         obj = OrderedDict()
-        obj['details'] = ', '.join(args)
-        obj['params'] = str(params)
+        if args and params:
+            obj['details'] = ', '.join(args)
+            obj['params'] = str(params)
         self.error['description'] = obj
 
 

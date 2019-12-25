@@ -3,9 +3,11 @@ import json
 import re
 
 import falcon
+import redis
 
 from hyuga.api.common import dns_record_success
-from hyuga.core.errors import InvalidParameterError, NotSupportedError
+from hyuga.core.errors import (ERR_DATABASE_CONNECTION, DatabaseError,
+                               InvalidParameterError, NotSupportedError)
 from hyuga.core.log import _api_logger
 from hyuga.lib.option import CONFIG
 from hyuga.models.record import HttpRecord
@@ -47,7 +49,8 @@ class GlobalFilter:
         elif req.host != CONFIG.API_DOMAIN:
             host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
             if not host:
-                return
+                raise NotSupportedError(method=req.method, url=req.url)
+
             str_data = req.stream.read().decode("utf-8").rstrip("")
             try:
                 http_record = HttpRecord(
@@ -62,5 +65,5 @@ class GlobalFilter:
                 http_record.save()
                 http_record.expire(CONFIG.RECORDS_EXPIRE)
                 dns_record_success(resp)
-            except:
-                raise InvalidParameterError()
+            except redis.exceptions.ConnectionError:
+                raise DatabaseError(ERR_DATABASE_CONNECTION)
