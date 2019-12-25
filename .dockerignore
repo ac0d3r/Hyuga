@@ -1,0 +1,16 @@
+.venv
+.vscode
+
+.git
+.gitignore
+*/.gitkeep
+
+
+Pipfile
+Pipfile.lock
+LICENSE
+README.md
+
+deploy/
+
+*.pyc

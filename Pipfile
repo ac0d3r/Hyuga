@@ -1,0 +1,31 @@
+[[source]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+falcon = "*"
+cerberus = "*"
+redis = "*"
+bcrypt = "*"
+pyjwt = "*"
+peewee = "*"
+redisco = {path = "./thirdparty/redisco"}
+shortuuid = "*"
+dnslib = "*"
+pymysql = "*"
+gunicorn = "*"
+python-dotenv = "*"
+click = "*"
+
+[dev-packages]
+pylint = "*"
+autopep8 = "*"
+pytest = "*"
+requests = "*"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
