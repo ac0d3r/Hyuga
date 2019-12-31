@@ -50,20 +50,5 @@ def rundns():
     main()
 
 
-@main.command()
-def runapi():
-    try:
-        from wsgiref import simple_server
-        import wsgi
-        host = ("127.0.0.1", 5000)
-        click.echo("[CMD] Test Listen %s:%s ..." % (host[0], host[1]))
-        httpd = simple_server.make_server(
-            host[0], host[1], wsgi.app)
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        click.echo("Bye..")
-        httpd.server_close()
-
-
 if __name__ == "__main__":
     main()
