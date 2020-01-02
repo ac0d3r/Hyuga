@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import click
 
-import init
+from hyuga.lib.option import init
 
 BANNER = r"""
  __                            
@@ -10,7 +10,7 @@ BANNER = r"""
 |__|__|___  |_____|___  |___._|
       |_____|     |_____|      
 """
-
+init()
 
 @click.group()
 def main():
@@ -45,7 +45,7 @@ def createtables():
 
 
 @main.command()
-def rundns():
+def rundns(dev):
     from hyuga.dns import main
     main()
 
