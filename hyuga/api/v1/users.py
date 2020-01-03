@@ -82,7 +82,7 @@ class UsersItem(BaseResource):
         try:
             user = User.get(User.id == user_id)
             user.delete_instance()
-            self.on_success(resp, {"id": 1})
+            self.on_success(resp, {"id": user_id})
         except User.DoesNotExist:
             raise UserNotExistsError()
         except Exception:
