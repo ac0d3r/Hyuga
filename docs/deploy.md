@@ -53,6 +53,12 @@ ns2.ns.com  A 记录指向  1.1.1.1
 
 ---
 
+## Install thirdparty redisco
+```
+cd Hyuga/thirdparty
+git clone https://github.com/chen2aaron/redisco.git
+```
+
 ## Running with docker
 
 ```bash
