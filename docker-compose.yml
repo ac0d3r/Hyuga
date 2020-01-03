@@ -14,8 +14,8 @@ services:
       MYSQL_USER: "demo1"
       MYSQL_PASSWORD: "12345678"
     volumes:
-      - "./mysql/data:/var/lib/mysql"
-      - "./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+      - "./deploy/mysql/data:/var/lib/mysql"
+      - "./deploy/mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
 
   hyuga:
     build:
