@@ -57,6 +57,7 @@ class RedisLogger():
         if not r_udomain:
             return
 
+        # udomain -> uidentify.{CONFIG.DOMAIN}
         udomain = r_udomain.group(1)
         if udomain in CONFIG.DNS_IGNORE_DOMAINS:
             return
@@ -65,7 +66,7 @@ class RedisLogger():
         try:
             dns_record = DnsRecord(
                 uidentify=udomain.split("."+CONFIG.DOMAIN)[0],
-                name=udomain,
+                name=domain.strip("."),
                 remote_addr=client_ip
             )
             dns_record.save()
