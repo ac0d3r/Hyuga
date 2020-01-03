@@ -1,42 +1,45 @@
 version: "3"
 services:
+  redis:
+    image: "redis:alpine"
+    restart: always
+
+  mysql:
+    image: mysql
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: hyuga
+      MYSQL_USER: "demo1"
+      MYSQL_PASSWORD: "12345678"
+    volumes:
+      - "./mysql/data:/var/lib/mysql"
+      - "./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+
   hyuga:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - ".env"
     command: "bash /app/bin/bin.sh"
     ports:
       - 127.0.0.1:5000:5000
       - "53:53/udp"
+    volumes:
+      - "./:/app"
     links:
       - redis
       - mysql
 
-redis:
-  image: "redis:alpine"
-  restart: always
-
-mysql:
-  image: "mysql:alpine"
-  container_name: mysql-db # 容器名
-  command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
-  restart: always
-  environment:
-    MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-    MYSQL_DATABASE: hyuga
-    MYSQL_USER: "demo1"
-    MYSQL_PASSWORD: "12345678"
-  volumes:
-    - "./mysql/data:/var/lib/mysql"
-    - "./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
-
-nginx:
-  image: nginx
-  restart: always
-  ports:
-    - "80:80"
-  links:
-    - hyuga
-  volumes:
-    - "./deploy/nginx/conf.d:/etc/nginx/conf.d"
-    - "./deploy/nginx/www:/var/www"
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "80:80"
+    links:
+      - hyuga
+    volumes:
+      - "./deploy/nginx/conf.d:/etc/nginx/conf.d"
+      - "./deploy/nginx/www:/var/www"

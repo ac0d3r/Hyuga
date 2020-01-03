@@ -45,7 +45,7 @@ def createtables():
 
 
 @main.command()
-def rundns(dev):
+def rundns():
     from hyuga.dns import main
     main()
 

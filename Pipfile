@@ -16,6 +16,7 @@ dnslib = "*"
 pymysql = "*"
 gunicorn = "*"
 click = "*"
+cryptography = "*"
 
 [dev-packages]
 pylint = "*"

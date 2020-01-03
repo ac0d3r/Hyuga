@@ -107,3 +107,4 @@ venv.bak/
 dump.rdb
 .Ds_Store
 logs/
+mysql/data
