@@ -8,7 +8,7 @@
 
 ### Hyuga API
 
-http://api.hyuga.co/v1/records?token=`{token}`&type=`{dns | http}`&filter=`{filter}`
+`http://api.hyuga.co/v1/records?token=`{token}`&type=`{dns | http}`&filter=`{filter}
 - `token`: your hyuga api token.
 - `type`: type of query, 'dns' or 'http'.
 - `filter`: match url name rule, the filter max length is 20.
