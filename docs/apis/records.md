@@ -4,7 +4,7 @@
 - 通过 token 查询 [dns|http] 记录
 
 请求URL：
-- `http://api.[domain]/v1/records?token=`{token}`&type=`{dns | http}`&filter=`{filter}`
+- `http://api.hyuga.co/v1/records?token=`{token}`&type=`{dns | http}`&filter=`{filter}
 
 请求方式：
 - `GET`
