@@ -4,7 +4,7 @@
 > 与 `ceye.io` 相似，只因兴趣使然决定写出这款工具将其开源。
 
 ## Usage
-> 访问：http://hyuga.co/
+> Demo：http://hyuga.co/
 
 ### Hyuga API
 
