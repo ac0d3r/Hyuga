@@ -10,13 +10,13 @@ redis = "*"
 bcrypt = "*"
 pyjwt = "*"
 peewee = "*"
-redisco = {path = "./thirdparty/redisco"}
 shortuuid = "*"
 dnslib = "*"
 pymysql = "*"
 gunicorn = "*"
 click = "*"
 cryptography = "*"
+redisco = {editable = true,path = "./thirdparty/redisco"}
 
 [dev-packages]
 pylint = "*"
