@@ -59,6 +59,11 @@ cd Hyuga/thirdparty
 git clone https://github.com/chen2aaron/redisco.git
 ```
 
+## Front end
+> 还在持续更新ing👆, react 只会一点点🤏
+
+Front end >>>> [Hyuga-react-README](https://github.com/Buzz2d0/Hyuga-react)
+
 ## Running with docker
 
 ```bash
