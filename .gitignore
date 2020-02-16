@@ -107,4 +107,5 @@ venv.bak/
 dump.rdb
 .Ds_Store
 logs/
-mysql/data
+deploy/mysql/data
+deploy/nginx/www
