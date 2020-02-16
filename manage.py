@@ -3,7 +3,10 @@ from wsgiref import simple_server
 
 import click
 
-from hyuga.lib.option import init
+from hyuga.app import create_app
+from hyuga.core.database import database
+from hyuga.dns import dnsserver
+from hyuga.models.user import User
 
 BANNER = r"""
  __                            
@@ -12,20 +15,20 @@ BANNER = r"""
 |__|__|___  |_____|___  |___._|
       |_____|     |_____|      
 """
-init()
 
 
 @click.group()
-def main():
+def manage():
     click.echo(BANNER)
 
 
-@main.command()
+@manage.command()
 @click.option("--username", "username", prompt=True)
 @click.option("--password", "password", prompt=True, hide_input=True,
               confirmation_prompt=True)
 def createsuperuser(username, password):
-    from hyuga.models.user import User
+    """Create superuser.
+    """
     click.echo("[CMD] create super user...")
     User.create(
         username=username,
@@ -37,25 +40,24 @@ def createsuperuser(username, password):
     click.echo("[CMD] create super user success...")
 
 
-@main.command()
+@manage.command()
 def createtables():
-    from hyuga.database import database
-    from hyuga.models.user import User
+    """Create tables.
+    """
     click.echo("[CMD] create tables...")
     with database:
         database.create_tables([User], safe=True)
     click.echo("[CMD] create tables success...")
 
 
-@main.command()
+@manage.command()
 @click.option("--host", "host", default="127.0.0.1")
 @click.option("--port", "port", default=8080)
 def runweb(host, port):
     """Runs the application on a local development server.
     """
-    from hyuga.app import create
     try:
-        app = create(testing=True)
+        app = create_app(testing=True)
         click.echo("[TESTING] %s" % ("="*50))
         click.echo("[TESTING] API Server run on: http://%s:%s" %
                    (host, port))
@@ -67,11 +69,12 @@ def runweb(host, port):
         httpd.shutdown()
 
 
-@main.command()
+@manage.command()
 def rundns():
-    from hyuga.dns import main
-    main()
+    """Runs the simple dns server.
+    """
+    dnsserver()
 
 
 if __name__ == "__main__":
-    main()
+    manage()

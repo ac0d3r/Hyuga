@@ -3,7 +3,7 @@ from datetime import datetime
 from bcrypt import gensalt, hashpw
 from peewee import BlobField, DateTimeField, Model
 
-from hyuga.database import database
+from hyuga.core.database import database
 
 
 class BaseModel(Model):

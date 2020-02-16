@@ -26,7 +26,7 @@ class App(falcon.API):
         self.add_error_handler(AppError, AppError.handle)
 
 
-def create(testing=False):
+def create_app(testing=False):
     middlewares = [HandleCORS(), PeeweeConnection()]
     if testing is False:
         middlewares.append(GlobalFilter())

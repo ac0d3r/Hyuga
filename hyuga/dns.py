@@ -135,7 +135,7 @@ class ZoneResolver(BaseResolver):
         return reply
 
 
-def main():
+def dnsserver():
     try:
         resolver = ZoneResolver(ZONE, True)
         logger = RedisLogger()
@@ -147,7 +147,3 @@ def main():
     except KeyboardInterrupt:
         _dns_logger.info("Shutting Down Dns Server (*:53) [UDP]")
         dns_server.stop()
-
-
-if __name__ == '__main__':
-    main()

@@ -6,7 +6,7 @@ from hyuga.core.log import logger
 
 
 def get_mysql_db():
-    logger.info('Connecting to Mysql database..')
+    logger.debug('Connecting to Mysql database..')
     return MySQLDatabase(CONFIG.MYSQL_DB, user=CONFIG.MYSQL_USER, password=CONFIG.MYSQL_PASSWORD, host=CONFIG.MYSQL_SERVER, port=int(CONFIG.MYSQL_PROT))
 
 
