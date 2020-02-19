@@ -1,2 +1,2 @@
-from .base import BaseResource, dns_record_success
+from .base import BaseResource, set_resp_record_succ_http
 from .fields import FIELDS, BaseValidate

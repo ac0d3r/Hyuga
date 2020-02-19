@@ -76,7 +76,9 @@ class BaseResource:
         return json.dumps(body)
 
 
-def dns_record_success(resp):
+def set_resp_record_succ_http(resp):
+    """set response when the 'httplog' is recorded successfully.
+    """
     resp.status = falcon.HTTP_200
     meta = OrderedDict()
     meta['code'] = 201

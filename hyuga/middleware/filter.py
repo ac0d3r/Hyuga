@@ -5,7 +5,7 @@ import re
 import falcon
 import redis
 
-from hyuga.api.common import dns_record_success
+from hyuga.api.common import set_resp_record_succ_http
 from hyuga.core.errors import (ERR_DATABASE_CONNECTION, DatabaseError,
                                InvalidParameterError, NotSupportedError)
 from hyuga.core.log import _api_logger
@@ -64,7 +64,7 @@ class GlobalFilter:
                 )
                 http_record.save()
                 http_record.expire(CONFIG.RECORDS_EXPIRE)
-                dns_record_success(resp)
+                set_resp_record_succ_http(resp)
             except redis.exceptions.ConnectionError:
                 raise DatabaseError(ERR_DATABASE_CONNECTION)
             # 指向其他不存在的路由
