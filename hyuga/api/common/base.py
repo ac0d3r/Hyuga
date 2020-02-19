@@ -75,14 +75,13 @@ class BaseResource:
     def to_json(body: dict):
         return json.dumps(body)
 
-
-def set_resp_record_succ_http(resp):
-    """set response when the 'httplog' is recorded successfully.
-    """
-    resp.status = falcon.HTTP_200
-    meta = OrderedDict()
-    meta['code'] = 201
-    meta['message'] = "HTTP Record Insert Success"
-    obj = OrderedDict()
-    obj['meta'] = meta
-    resp.body = BaseResource.to_json(obj)
+    @staticmethod
+    def on_record_http_success():
+        """set response body when the 'httplog' is recorded successfully.
+        """
+        meta = OrderedDict()
+        meta['code'] = 201
+        meta['message'] = "HTTP Record Insert Success"
+        obj = OrderedDict()
+        obj['meta'] = meta
+        return BaseResource.to_json(obj)

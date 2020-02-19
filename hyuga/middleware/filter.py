@@ -4,8 +4,9 @@ import re
 
 import falcon
 import redis
+from falcon.http_status import HTTPStatus
 
-from hyuga.api.common import set_resp_record_succ_http
+from hyuga.api.common import BaseResource
 from hyuga.core.errors import (ERR_DATABASE_CONNECTION, DatabaseError,
                                InvalidParameterError, NotSupportedError)
 from hyuga.core.log import _api_logger
@@ -18,7 +19,8 @@ class GlobalFilter:
     """
 
     def process_request(self, req, resp):
-        _api_logger.debug(f'{req.host}: {req.path}')
+        _api_logger.debug(
+            f'middleware filter GlobalFilter - host: {req.host} path: {req.path}')
         # filter out ip and others domain
         if not req.host.endswith(CONFIG.DOMAIN):
             raise NotSupportedError(method=req.method, url=req.url)
@@ -64,8 +66,8 @@ class GlobalFilter:
                 )
                 http_record.save()
                 http_record.expire(CONFIG.RECORDS_EXPIRE)
-                set_resp_record_succ_http(resp)
+                raise HTTPStatus(
+                    falcon.HTTP_200, body=BaseResource.on_record_http_success())
+
             except redis.exceptions.ConnectionError:
                 raise DatabaseError(ERR_DATABASE_CONNECTION)
-            # 指向其他不存在的路由
-            req.path = "/dev/null"
