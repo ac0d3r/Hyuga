@@ -10,7 +10,7 @@ from hyuga.api.common import BaseResource
 from hyuga.core.errors import (ERR_DATABASE_CONNECTION, DatabaseError,
                                InvalidParameterError, NotSupportedError)
 from hyuga.core.log import _api_logger
-from hyuga.lib.option import CONFIG
+from hyuga.lib.option import CONFIG, LOG_LEVEL
 from hyuga.models.record import HttpRecord
 
 
@@ -18,11 +18,19 @@ class GlobalFilter:
     """全局过滤
     """
 
+    def __init__(self, debug=None):
+        self.debug = debug
+        if debug is None:
+            self.debug = False
+            if LOG_LEVEL != "info":
+                self.debug = True
+
     def process_request(self, req, resp):
         _api_logger.debug(
             f'middleware filter GlobalFilter - host: {req.host} path: {req.path}')
         # filter out ip and others domain
-        if not req.host.endswith(CONFIG.DOMAIN):
+        if not self.debug and \
+                not req.host.endswith(CONFIG.DOMAIN):
             raise NotSupportedError(method=req.method, url=req.url)
 
         # api
@@ -49,9 +57,10 @@ class GlobalFilter:
 
         # record *.`CONFIG.DOMAIN`(http)
         elif req.host != CONFIG.API_DOMAIN:
-            host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
-            if not host:
-                raise NotSupportedError(method=req.method, url=req.url)
+            if not self.debug:
+                host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
+                if not host:
+                    raise NotSupportedError(method=req.method, url=req.url)
 
             str_data = req.stream.read().decode("utf-8").rstrip("")
             try:
