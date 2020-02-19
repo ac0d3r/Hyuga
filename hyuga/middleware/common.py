@@ -3,6 +3,7 @@ import falcon
 from falcon.http_status import HTTPStatus
 
 from hyuga.core.database import database
+from hyuga.core.log import logger
 
 
 class HandleCORS:
@@ -17,6 +18,9 @@ class HandleCORS:
 
 class PeeweeConnection:
     def process_request(self, req, resp):
+        if req.url == "/":
+            logger.debug("Don't connect database when req.url equal '/'")
+            return
         database.connect()
 
     def process_response(self, req, resp, resource, req_succeeded):
