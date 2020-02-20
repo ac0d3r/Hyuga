@@ -1,17 +1,11 @@
 import re
 
-from redisco import connection_setup, models
-
-from hyuga.lib.option import CONFIG
-
-connection_setup(host=CONFIG.REDIS_SERVER, port=int(
-    CONFIG.REDIS_PROT), db=int(CONFIG.REDIS_DB))
+from redisco import models
 
 
-def not_domain_name(field_name, value):
-    if isinstance(value, str):
-        if not re.match(r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$', value):
-            return ((field_name, 'Not domain name'),)
+def domain_name_validator(field_name, value):
+    if not re.match(r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$', value):
+        return ((field_name, 'Not domain name'),)
 
 
 class BaseModel(models.Model):
@@ -19,13 +13,17 @@ class BaseModel(models.Model):
 
 
 class DnsRecord(BaseModel):
+    # User.identify
     uidentify = models.Attribute(required=True, indexed=True)
-    name = models.Attribute(required=True, validator=not_domain_name)
+    # 请求解析的域名
+    name = models.Attribute(required=True, validator=domain_name_validator)
     remote_addr = models.Attribute(required=True)
 
 
 class HttpRecord(BaseModel):
+    # User.identify
     uidentify = models.Attribute(required=True, indexed=True)
+    # url
     name = models.Attribute(required=True)
     method = models.Attribute(required=True)
     data = models.Attribute()
