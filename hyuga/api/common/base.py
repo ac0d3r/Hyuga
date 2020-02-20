@@ -20,7 +20,7 @@ class BaseResource:
     def __init__(self):
         self.current_user = None
 
-    def on_error(self, resp, error=None):
+    def on_error(self, resp, error):
         resp.status = error['status']
         meta = OrderedDict()
         meta['code'] = error['code']

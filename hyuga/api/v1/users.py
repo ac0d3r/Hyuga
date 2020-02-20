@@ -6,9 +6,9 @@ import jwt
 
 from hyuga.api.common import FIELDS, BaseResource, BaseValidate
 from hyuga.core.auth import authenticated
-from hyuga.core.errors import (ERR_USER_ALREADY_EXISTS, InvalidParameterError,
-                               NotSupportedError, UnauthorizedError,
-                               UserNotExistsError)
+from hyuga.core.errors import (ERR_UNKNOWN, ERR_USER_ALREADY_EXISTS,
+                               InvalidParameterError, NotSupportedError,
+                               UnauthorizedError, UserNotExistsError)
 from hyuga.core.log import _api_logger
 from hyuga.lib.option import CONFIG
 from hyuga.models.user import User, create_user
@@ -30,12 +30,12 @@ class Users(BaseResource):
         if self.current_user is None or \
                 self.current_user.administrator is False:
             raise NotSupportedError(method=req.method, url=req.path)
-
         try:
             resp_data = [user.model_to_dict() for user in User.select()]
             self.on_success(resp, resp_data)
-        except User.DoesNotExist:
-            self.on_error(resp)
+        except Exception as e:
+            _api_logger.info("Users on_get ERROR: %s" % e)
+            self.on_error(resp, ERR_UNKNOWN)
 
     @falcon.before(BaseValidate(postSchema).validate)
     def on_post(self, req, resp):
@@ -85,8 +85,9 @@ class UsersItem(BaseResource):
             self.on_success(resp, {"id": user_id})
         except User.DoesNotExist:
             raise UserNotExistsError()
-        except Exception:
-            self.on_error(resp)
+        except Exception as e:
+            _api_logger.info("UsersItem on_delete ERROR: %s" % e)
+            self.on_error(resp, ERR_UNKNOWN)
 
 
 class UsersSelf(BaseResource):
