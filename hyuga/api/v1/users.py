@@ -118,7 +118,7 @@ class UsersSelfOperation(BaseResource):
         password = req_data["password"]
         try:
             user = User.get(User.username == username)
-            _api_logger.debug(f"password: {password}, {user.password}")
+            _api_logger.debug("password: %s, %s" % (password, user.password))
             if not user.password.check_password(password):
                 raise UnauthorizedError()
 

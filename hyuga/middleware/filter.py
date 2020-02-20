@@ -27,7 +27,7 @@ class GlobalFilter:
 
     def process_request(self, req, resp):
         _api_logger.debug(
-            f'middleware filter GlobalFilter - host: {req.host} path: {req.path}')
+            'middleware filter GlobalFilter - host: %s path: %s' % (req.host, req.path))
         # filter out ip and others domain
         if not self.debug and \
                 not req.host.endswith(CONFIG.DOMAIN):
@@ -38,8 +38,8 @@ class GlobalFilter:
             if not req.method in CONFIG.ALLOW_METHODS:
                 raise NotSupportedError(method=req.method, url=req.url)
 
-            _api_logger.debug(
-                f'Method: {req.method}, ContentType:{req.content_type}')
+            _api_logger.debug('Method: %s, ContentType: %s' %
+                              (req.method, req.content_type))
             if 'application/json' != req.content_type:
                 req.context['data'] = None
                 return

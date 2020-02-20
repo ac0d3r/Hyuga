@@ -102,4 +102,4 @@ class Records(BaseResource):
             resp_data = records_to_list(records, _filter)
             self.on_success(resp, resp_data)
         except User.DoesNotExist:
-            raise UnauthorizedError(f"Token Does Not Exist: {_token}")
+            raise UnauthorizedError("Token Does Not Exist: %s" % _token)
