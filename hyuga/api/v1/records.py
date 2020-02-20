@@ -19,11 +19,9 @@ class UsersSelfRecords(BaseResource):
         "type": FIELDS["recordType"]
     }
 
+    @authenticated()
     @falcon.before(BaseValidate(Schema, is_params=True).validate)
-    @authenticated
     def on_get(self, req, resp):
-        if self.current_user is None:
-            raise UnauthorizedError()
         if not req.params:
             raise InvalidParameterError()
 
@@ -39,11 +37,9 @@ class UsersSelfRecords(BaseResource):
         resp_data = records_to_list(records)
         self.on_success(resp, resp_data)
 
+    @authenticated()
     @falcon.before(BaseValidate(Schema).validate)
-    @authenticated
     def on_delete(self, req, resp):
-        if self.current_user is None:
-            raise UnauthorizedError()
         req_data = req.context["data"]
         if not req_data:
             raise InvalidParameterError()

@@ -24,12 +24,8 @@ class Users(BaseResource):
         "nickname": FIELDS["nickname"]
     }
 
-    @authenticated
+    @authenticated(verifyadmin=True)
     def on_get(self, req, resp):
-        # 管理员权限可以访问
-        if self.current_user is None or \
-                self.current_user.administrator is False:
-            raise NotSupportedError(method=req.method, url=req.path)
         try:
             resp_data = [user.model_to_dict() for user in User.select()]
             self.on_success(resp, resp_data)
@@ -61,24 +57,16 @@ class UsersItem(BaseResource):
     Handle for endpoint: /v1/users/{user_id}
     """
 
-    @authenticated
+    @authenticated(verifyadmin=True)
     def on_get(self, req, resp, user_id):
-        if self.current_user is None or \
-                self.current_user.administrator is False:
-            raise NotSupportedError(method=req.method, url=req.path)
-
         try:
             user = User.get(User.id == user_id)
             self.on_success(resp, user.model_to_dict())
         except User.DoesNotExist:
             raise UserNotExistsError()
 
-    @authenticated
+    @authenticated(verifyadmin=True)
     def on_delete(self, req, resp, user_id):
-        if self.current_user is None or \
-                self.current_user.administrator is False:
-            raise NotSupportedError(method=req.method, url=req.path)
-
         try:
             user = User.get(User.id == user_id)
             user.delete_instance()
@@ -94,11 +82,8 @@ class UsersSelf(BaseResource):
     """
     Handle for endpoint: /v1/users/self
     """
-    @authenticated
+    @authenticated()
     def on_get(self, req, resp):
-        if self.current_user is None:
-            raise UnauthorizedError()
-
         self.on_success(resp, self.current_user.model_to_dict())
 
 
