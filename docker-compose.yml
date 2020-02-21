@@ -2,7 +2,10 @@ version: "3"
 services:
   redis:
     image: "redis:alpine"
+    container_name: hyuga_redis
     restart: always
+    volumes:
+      - "./deploy/redis/data:/data"
 
   mysql:
     image: mysql
