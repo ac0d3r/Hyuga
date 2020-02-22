@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
-
-from hyuga.core.log import setup_hyuga_logger
+import redisco
+from hyuga.core.log import setup_hyuga_logger, logger
 
 from .settings import config, BaseConfig
 
@@ -22,3 +22,7 @@ def init(config_env=None):
     LOG_LEVEL = CONFIG_LOG_LEVEL[config_env]
     setup_hyuga_logger(LOG_LEVEL)
     CONFIG = config[config_env]
+    # redisco setup
+    logger.debug('Set up to Redis database..')
+    redisco.connection_setup(host=CONFIG.REDIS_SERVER, port=int(
+        CONFIG.REDIS_PROT), db=int(CONFIG.REDIS_DB))
