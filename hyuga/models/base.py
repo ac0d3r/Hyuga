@@ -1,47 +1,30 @@
-from datetime import datetime
+import bcrypt
 
-from bcrypt import gensalt, hashpw
-from peewee import BlobField, DateTimeField, Model
-
-from hyuga.core.database import database
+from redisco import models
+from redisco.models import Attribute
 
 
-class BaseModel(Model):
-    created = DateTimeField(default=datetime.utcnow())
-    modified = DateTimeField(default=datetime.utcnow())
-
-    class Meta:
-        database = database
+class BaseModel(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
 
 
 class PasswordHash(bytes):
-    def check_password(self, password) -> bool:
-        password = password.encode('utf-8')
-        return hashpw(password, self) == self
 
+    @property
+    def db_store(self) -> str:
+        """convert to character for store in redis
+        """
+        return self.decode("utf-8")
 
-class PasswordField(BlobField):
-    def __init__(self, iterations=12, *args, **kwargs):
-        if None in (hashpw, gensalt):
-            raise ValueError(
-                'Missing library required for PasswordField: bcrypt')
-        self.bcrypt_iterations = iterations
-        self.raw_password = None
-        super(PasswordField, self).__init__(*args, **kwargs)
+    def check_password(self, password: str) -> bool:
+        password = password.encode("utf-8")
+        return bcrypt.checkpw(password, self)
 
-    def db_value(self, value):
-        """Convert the python value for storage in the database."""
-        if isinstance(value, PasswordHash):
-            return bytes(value)
+    @staticmethod
+    def hash_password(password: str, salt=12):
+        password = password.encode("utf-8")
+        return PasswordHash(bcrypt.hashpw(password, bcrypt.gensalt(salt)))
 
-        if isinstance(value, str):
-            value = value.encode('utf-8')
-        salt = gensalt(self.bcrypt_iterations)
-        return value if value is None else hashpw(value, salt)
-
-    def python_value(self, value):
-        """Convert the database value to a pythonic value."""
-        if isinstance(value, str):
-            value = value.encode('utf-8')
-
-        return PasswordHash(value)
+    @staticmethod
+    def py_value(hasded_password: str):
+        return PasswordHash(hasded_password.encode("utf-8"))

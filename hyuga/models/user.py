@@ -1,21 +1,24 @@
+import typing
 import uuid
 
-from peewee import BooleanField, CharField, ForeignKeyField
+import redis
 
+from hyuga.core.errors import CanNotCreateUserError
 from hyuga.lib.utils import get_shortuuid
 
-from .base import BaseModel, PasswordField
+from .base import BaseModel, PasswordHash, models
 
 
 class User(BaseModel):
-    username = CharField(max_length=30, unique=True, null=False)
-    nickname = CharField(max_length=255, default="路人甲")
-    password = PasswordField(null=False)
-    identify = CharField(max_length=32, unique=True, null=False)
-    token = CharField(max_length=32, unique=True, null=False)
-    administrator = BooleanField(default=False)
+    username = models.CharField(max_length=30, unique=True, required=True)
+    nickname = models.CharField(max_length=255, default="路人甲")
+    password = models.CharField(required=True)
+    identify = models.CharField(
+        required=True, max_length=32, unique=True, indexed=True)
+    token = models.CharField(required=True, max_length=32, unique=True)
+    administrator = models.BooleanField(default=False)
 
-    def model_to_dict(self):
+    def part_attr_to_dict(self):
         return {
             'username': self.username,
             'nickname': self.nickname,
@@ -24,28 +27,43 @@ class User(BaseModel):
         }
 
 
-def __get_unique_identify(length=6, max_times=3) -> str:
-    has_times = 0
+def _get_unique_identify(length=6, max_times=(3, 9)) -> typing.Union[str, None]:
+    """get unique identify
+    :param length: identify length
+    :param max_times: 
+        0: maximum number of single attempts
+        1: maximum number of attempts
+    """
+    _all_the_times = 0
+    _single_times = 0
     while True:
         identify = get_shortuuid(length)
         try:
-            User.get(User.identify == identify)
-            has_times += 1
-            if has_times >= max_times:
-                has_times = 0
-                length += 1
-        except User.DoesNotExist:
+            user = User.objects.filter(identify=identify).first()
+        except redis.exceptions.ConnectionError:
+            return None
+        if not user:
             break
+        _single_times += 1
+        _all_the_times += 1
+        if _all_the_times > max_times[1]:
+            return None
+        if _single_times >= max_times[0]:
+            _single_times = 0
+            length += 1
     return identify
 
 
 def create_user(username, password, nickname="路人甲"):
     token = uuid.uuid1().hex
-    identify = __get_unique_identify(6, 3)
-    User.create(
+    identify = _get_unique_identify(6, 3)
+    if identify is None:
+        raise CanNotCreateUserError()
+    user = User(
         username=username,
-        password=password,
+        password=PasswordHash.hash_password(password).db_store,
         nickname=nickname,
         identify=identify,
         token=token
     )
+    user.save()

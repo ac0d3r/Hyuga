@@ -1,10 +1,16 @@
 import json
+
 import falcon
 
 try:
     from collections import OrderedDict
 except:
     OrderedDict = dict
+
+# ----------------------------------------------------
+# --------------Hyuga API errors----------------------
+# ----------------------------------------------------
+
 
 OK = {
     'status': falcon.HTTP_200,
@@ -137,3 +143,14 @@ class UnauthorizedError(AppError):
     def __init__(self, description=None):
         super().__init__(ERR_AUTH_REQUIRED)
         self.error['description'] = description
+
+# ----------------------------------------------------
+# --------------Hyuga errors--------------------------
+# ----------------------------------------------------
+
+
+class CanNotCreateUserError(Exception):
+    """can not create user error:
+        Unable to obtain unique identify
+    """
+    pass

@@ -1,15 +1,11 @@
 import re
 
-from redisco import models
+from .base import BaseModel, models
 
 
 def domain_name_validator(field_name, value):
     if not re.match(r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$', value):
         return ((field_name, 'Not domain name'),)
-
-
-class BaseModel(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
 
 
 class DnsRecord(BaseModel):
