@@ -1,5 +1,4 @@
 import unittest
-from hyuga.core.database import db_setup
 from hyuga.models.user import _get_unique_identify
 from hyuga.models.user import *
 

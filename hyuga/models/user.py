@@ -59,11 +59,10 @@ def create_user(username, password, nickname="路人甲"):
     identify = _get_unique_identify(6, 3)
     if identify is None:
         raise CanNotCreateUserError()
-    user = User(
+    User.objects.create(
         username=username,
         password=PasswordHash.hash_password(password).db_store,
         nickname=nickname,
         identify=identify,
         token=token
     )
-    user.save()
