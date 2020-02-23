@@ -4,7 +4,7 @@ from hyuga.api.common import base
 from hyuga.api.v1 import records, users
 from hyuga.core.errors import AppError
 from hyuga.core.log import logger
-from hyuga.middleware import GlobalFilter, HandleCORS, PeeweeConnection
+from hyuga.middleware import GlobalFilter, HandleCORS
 
 
 class App(falcon.API):
@@ -27,7 +27,7 @@ class App(falcon.API):
 
 
 def create_app(testing=False):
-    middlewares = [HandleCORS(), PeeweeConnection()]
+    middlewares = [HandleCORS()]
     if testing is False:
         middlewares.append(GlobalFilter())
     return App(middleware=middlewares)

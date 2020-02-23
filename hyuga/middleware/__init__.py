@@ -1,2 +1,2 @@
 from .filter import GlobalFilter
-from .common import HandleCORS, PeeweeConnection
+from .common import HandleCORS
