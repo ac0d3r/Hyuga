@@ -43,10 +43,10 @@ class GlobalFilter:
             if 'application/json' != req.content_type:
                 req.context['data'] = None
                 return
-            try:
-                raw_json = req.stream.read()
-            except Exception:
-                raise falcon.HTTPBadRequest('Bad request', 'Read Error')
+            raw_json = req.bounded_stream.read()
+            if not raw_json:
+                raise falcon.HTTPBadRequest(
+                    'Empty request body', 'A valid JSON document is required')
             try:
                 req.context['data'] = json.loads(raw_json.decode('utf-8'))
             except UnicodeDecodeError:
