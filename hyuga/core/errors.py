@@ -65,6 +65,12 @@ ERR_USER_ALREADY_EXISTS = {
     'message': 'Users Already Exists'
 }
 
+ERR_CREATE_USER = {
+    'status': falcon.HTTP_500,
+    'code': 24,
+    'title': 'Unable to obtain unique identify'
+}
+
 ERR_PASSWORD_NOT_MATCH = {
     'status': falcon.HTTP_400,
     'code': 22,
