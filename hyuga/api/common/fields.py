@@ -48,19 +48,19 @@ class BaseValidate:
     def validate(self, req, resp, resource, params):
         v = Validator(self.schema)
         if self.is_params:
-            document = req.params
+            doc = req.params
         else:
-            document = req.context["data"]
-        _api_logger.debug(document)
+            doc = req.context.get("data", None)
+        _api_logger.debug(doc)
         try:
-            if document:
-                if isinstance(document, dict):
-                    if not v.validate(document):
+            if doc:
+                if isinstance(doc, dict):
+                    if not v.validate(doc):
                         raise InvalidParameterError(v.errors)
                 else:
                     raise InvalidParameterError(
-                        "Invalid Document %s .it must be a dict" % document)
+                        "Invalid doc %s .it must be a dict" % doc)
             else:
-                raise InvalidParameterError("Invalid Request %s" % req.context)
+                raise InvalidParameterError("Invalid Request %s" % doc)
         except SchemaError:
-            raise InvalidParameterError("Invalid Request %s" % req.context)
+            raise InvalidParameterError("Invalid Request %s" % doc)
