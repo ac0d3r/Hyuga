@@ -9,8 +9,13 @@ class TestModelsUser(unittest.TestCase):
     def setUp(self):
         """create some test users
         """
+        passwd = "password"
         for i in range(5):
-            create_user("test_%s" % i, "password")
+            uname = "test_%s" % i
+            if i == 4:
+                create_superuser(uname, passwd)
+                break
+            create_user(uname, passwd)
 
     def tearDown(self):
         """clear test users
@@ -34,6 +39,11 @@ class TestModelsUser(unittest.TestCase):
             self.assertEqual(
                 ["username", "nickname", "identify", "token"], list(_tmp.keys()))
             self.assertEqual(username, _tmp["username"])
+
+    def test_create_superuser(self):
+        users = User.objects.filter(administrator=True)
+        self.assertTrue(len(users) == 1)
+        self.assertTrue(users[0].administrator == True)
 
 
 if __name__ == '__main__':

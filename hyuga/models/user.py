@@ -66,3 +66,18 @@ def create_user(username, password, nickname="路人甲"):
         identify=identify,
         token=token
     )
+
+
+def create_superuser(username, password, nickname="管理员"):
+    token = uuid.uuid1().hex
+    identify = _get_unique_identify(6, 3)
+    if identify is None:
+        raise CanNotCreateUserError()
+    User.objects.create(
+        username=username,
+        password=PasswordHash.hash_password(password).db_store,
+        nickname=nickname,
+        identify=identify,
+        token=token,
+        administrator=True
+    )
