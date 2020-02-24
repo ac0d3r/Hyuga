@@ -46,7 +46,6 @@ Hyuga 的名字来自《火影忍者》中的日向一族的名称，日向一�
 
 - [Falcon](https://github.com/falconry/falcon) 用于构建快速 WEB API 和应用程序后端的极简 WSGI 库。
 - [cerberus](https://github.com/pyeve/cerberus) 轻量级、可扩展的数据验证库。
-- [peewee](https://github.com/coleifer/peewee) 简单小巧的 ORM。
 - [redisco](https://github.com/chen2aaron/redisco) 简单好用的 Redis ORM。
 - [dnslib](https://pypi.org/project/dnslib/) 用于对 DNS 数据包进行编码/解码。
 - [click](https://github.com/pallets/click) 组合命令行界面工具包。
@@ -59,6 +58,11 @@ Hyuga 的名字来自《火影忍者》中的日向一族的名称，日向一�
 - [x] 注册成功路由跳转登录
 - [x] 登录和注册时对返回的错误消息显示
 - [ ] 添加管理员可用的功能(查看、删除其他用户等等)
+
+**Backend**
+
+- [ ] 优化接口认证
+- [ ] remove mysql
 
 ## 🙏 参考
 
