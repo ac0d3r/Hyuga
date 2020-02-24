@@ -30,7 +30,7 @@ FIELDS = {
     },
     "recordsFilter": {
         "type": "string",
-        "regex": r"[A-Za-z0-9]{1,20}",
+        "regex": r"[A-Za-z0-9-]{1,20}",
         "maxlength": 20
     }
 

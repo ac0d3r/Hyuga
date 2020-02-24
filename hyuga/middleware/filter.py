@@ -57,12 +57,11 @@ class GlobalFilter:
 
         # record *.`CONFIG.DOMAIN`(http)
         elif req.host != CONFIG.API_DOMAIN:
-            if not self.debug:
-                host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
-                if not host:
-                    raise NotSupportedError(method=req.method, url=req.url)
+            host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
+            if not host:
+                raise NotSupportedError(method=req.method, url=req.url)
 
-            str_data = req.stream.read().decode("utf-8").rstrip("")
+            str_data = req.bounded_stream.read().decode("utf-8").rstrip("")
             try:
                 http_record = HttpRecord(
                     uidentify=host.group(1),

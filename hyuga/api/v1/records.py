@@ -1,14 +1,19 @@
 import falcon
+import redis
 
 from hyuga.api.common import FIELDS, BaseResource, BaseValidate
+from hyuga.core import errors
 from hyuga.core.auth import authenticated
-from hyuga.core.errors import (InvalidParameterError, UnauthorizedError,
-                               UserNotExistsError)
 from hyuga.core.log import _api_logger
+from hyuga.lib import utils
 from hyuga.lib.option import CONFIG
-from hyuga.lib.utils import records_to_list
 from hyuga.models.record import DnsRecord, HttpRecord
 from hyuga.models.user import User
+
+RECORD = {
+    "dns": DnsRecord,
+    "http": HttpRecord
+}
 
 
 class UsersSelfRecords(BaseResource):
@@ -22,40 +27,34 @@ class UsersSelfRecords(BaseResource):
     @authenticated()
     @falcon.before(BaseValidate(Schema, is_params=True).validate)
     def on_get(self, req, resp):
-        if not req.params:
-            raise InvalidParameterError()
+        Record = RECORD[req.params["type"]]
+        try:
+            records = Record.objects.filter(
+                uidentify=self.current_user.identify).limit(CONFIG.RECORDS_MAX_NUM)
+        except redis.exceptions.ConnectionError:
+            raise errors.DatabaseError(errors.ERR_DATABASE_CONNECTION)
+        except Exception as e:
+            _api_logger.info("UsersSelfRecords on_get ERROR: %s" % e)
+            self.on_error(resp, errors.ERR_UNKNOWN)
 
-        Record = None
-        _type = req.params["type"]
-        if _type == "dns":
-            Record = DnsRecord
-        elif _type == "http":
-            Record = HttpRecord
-
-        records = Record.objects.filter(
-            uidentify=self.current_user.identify).limit(CONFIG.RECORDS_MAX_NUM)
-        resp_data = records_to_list(records)
-        self.on_success(resp, resp_data)
+        self.on_success(resp, utils.records_to_list(records))
 
     @authenticated()
     @falcon.before(BaseValidate(Schema).validate)
     def on_delete(self, req, resp):
-        req_data = req.context["data"]
-        if not req_data:
-            raise InvalidParameterError()
+        Record = RECORD[req.context["data"]["type"]]
 
-        Record = None
-        _type = req_data["type"]
-        if _type == "dns":
-            Record = DnsRecord
-        elif _type == "http":
-            Record = HttpRecord
-
-        records = Record.objects.filter(uidentify=self.current_user.identify)
         try:
+            records = Record.objects.filter(
+                uidentify=self.current_user.identify)
+        except redis.exceptions.ConnectionError:
+            raise errors.DatabaseError(errors.ERR_DATABASE_CONNECTION)
+        except Exception as e:
+            _api_logger.info("UsersSelfRecords on_delete ERROR: %s" % e)
+            self.on_error(resp, errors.ERR_UNKNOWN)
+
+        if records:
             UsersSelfRecords.delete_records(records)
-        except:
-            pass
         self.on_success(resp)
 
     @staticmethod
@@ -79,27 +78,31 @@ class Records(BaseResource):
 
     @falcon.before(BaseValidate(getSchema, is_params=True).validate)
     def on_get(self, req, resp):
-        if not req.params:
-            raise InvalidParameterError()
-
         _filter = None
-        _type = req.params["type"]
         _token = req.params["token"]
         if "filter" in req.params.keys():
             _filter = req.params["filter"]
 
-        Record = None
-        _type = req.params["type"]
-        if _type == "dns":
-            Record = DnsRecord
-        elif _type == "http":
-            Record = HttpRecord
+        Record = RECORD[req.params["type"]]
+        try:
+            user = User.objects.filter(token=_token).first()
+        except redis.exceptions.ConnectionError:
+            raise errors.DatabaseError(errors.ERR_DATABASE_CONNECTION)
+        except Exception as e:
+            _api_logger.info("Records on_get ERROR: %s" % e)
+            self.on_error(resp, errors.ERR_UNKNOWN)
+
+        if not user:
+            raise errors.UnauthorizedError("Token Does Not Exist: %s" % _token)
 
         try:
-            user = User.get(User.token == _token)
             records = Record.objects.filter(
                 uidentify=user.identify).limit(CONFIG.RECORDS_MAX_NUM)
-            resp_data = records_to_list(records, _filter)
-            self.on_success(resp, resp_data)
-        except User.DoesNotExist:
-            raise UnauthorizedError("Token Does Not Exist: %s" % _token)
+        except redis.exceptions.ConnectionError:
+            raise errors.DatabaseError(errors.ERR_DATABASE_CONNECTION)
+        except Exception as e:
+            _api_logger.info("Records on_get ERROR: %s" % e)
+            self.on_error(resp, errors.ERR_UNKNOWN)
+
+        resp_data = utils.records_to_list(records, _filter)
+        self.on_success(resp, resp_data)
