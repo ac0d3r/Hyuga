@@ -1,2 +1,2 @@
 [TYPECHECK]
-ignored-classes=BaseModel,DnsRecord,HttpRecord,User,Usertoken
+ignored-classes=BaseModel,DnsRecord,HttpRecord,User,UserToken
