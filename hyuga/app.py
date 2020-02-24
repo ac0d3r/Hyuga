@@ -15,6 +15,7 @@ def init_routes(app):
     # users self
     app.add_route('/v1/users/self', users.UsersSelf())
     app.add_route('/v1/users/self/login', users.UsersSelfOperation())
+    app.add_route('/v1/users/self/logout', users.UsersSelfOperation())
     # records
     app.add_route('/v1/records', records.Records())
     app.add_route('/v1/users/self/records', records.UsersSelfRecords())
