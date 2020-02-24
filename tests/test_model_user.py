@@ -16,14 +16,22 @@ class TestModelsUser(unittest.TestCase):
                 create_superuser(uname, passwd)
                 break
             create_user(uname, passwd)
+        # create some usertoken
+        for i in range(3):
+            token = "uuid_%s" % i
+            jwt = "jwt_%s" % token
+            UserToken.objects.create(token=token, jwt=jwt)
 
     def tearDown(self):
         """clear test users
         """
-        for i in range(5):
-            user = User.objects.filter(username="test_%s" % i).first()
+        for user in User.objects.all():
             if user:
                 user.delete()
+
+        for user_token in UserToken.objects.all():
+            if user_token:
+                user_token.delete()
 
     def test_get_unique_identify(self):
         for _ in range(50):
@@ -44,6 +52,14 @@ class TestModelsUser(unittest.TestCase):
         users = User.objects.filter(administrator=True)
         self.assertTrue(len(users) == 1)
         self.assertTrue(users[0].administrator == True)
+
+    def test_user_token(self):
+        token = "uuid_%s" % 1
+        jwt = "jwt_%s" % token
+
+        user_tokens = UserToken.objects.filter(token=token)
+        self.assertTrue(len(user_tokens) == 1)
+        self.assertTrue(user_tokens[0].jwt == jwt)
 
 
 if __name__ == '__main__':

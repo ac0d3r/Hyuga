@@ -10,7 +10,8 @@ from .base import BaseModel, PasswordHash, models
 
 
 class User(BaseModel):
-    username = models.CharField(max_length=30, unique=True, required=True)
+    username = models.CharField(
+        max_length=30, unique=True, required=True, indexed=True)
     nickname = models.CharField(max_length=255, default="路人甲")
     password = models.CharField(required=True)
     identify = models.CharField(
@@ -25,6 +26,13 @@ class User(BaseModel):
             'identify': self.identify,
             'token': self.token
         }
+
+
+class UserToken(BaseModel):
+    # 返回的客户端的key
+    token = models.CharField(unique=True, required=True)
+    # jwt
+    jwt = models.CharField(required=True)
 
 
 def _get_unique_identify(length=6, max_times=(3, 9)) -> typing.Union[str, None]:
