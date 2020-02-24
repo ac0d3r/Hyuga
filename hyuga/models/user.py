@@ -3,7 +3,7 @@ import uuid
 
 import redis
 
-from hyuga.core.errors import CanNotCreateUserError
+from hyuga.core.errors import UserUnableIdentifyError
 from hyuga.lib.utils import get_shortuuid
 
 from .base import BaseModel, PasswordHash, models
@@ -62,26 +62,29 @@ def _get_unique_identify(length=6, max_times=(3, 9)) -> typing.Union[str, None]:
     return identify
 
 
-def create_user(username, password, nickname="路人甲"):
+def create_user(username, password, nickname="路人甲") -> typing.Union[bool, typing.Tuple]:
     token = uuid.uuid1().hex
     identify = _get_unique_identify(6, 3)
     if identify is None:
-        raise CanNotCreateUserError()
-    User.objects.create(
+        raise UserUnableIdentifyError()
+    user = User(
         username=username,
         password=PasswordHash.hash_password(password).db_store,
         nickname=nickname,
         identify=identify,
         token=token
     )
+    if not user.save():
+        return user.errors
+    return True
 
 
-def create_superuser(username, password, nickname="管理员"):
+def create_superuser(username, password, nickname="管理员") -> typing.Union[bool, typing.Tuple]:
     token = uuid.uuid1().hex
     identify = _get_unique_identify(6, 3)
     if identify is None:
-        raise CanNotCreateUserError()
-    User.objects.create(
+        raise UserUnableIdentifyError()
+    user = User(
         username=username,
         password=PasswordHash.hash_password(password).db_store,
         nickname=nickname,
@@ -89,3 +92,6 @@ def create_superuser(username, password, nickname="管理员"):
         token=token,
         administrator=True
     )
+    if not user.save():
+        return user.errors
+    return True

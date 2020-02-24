@@ -155,8 +155,7 @@ class UnauthorizedError(AppError):
 # ----------------------------------------------------
 
 
-class CanNotCreateUserError(Exception):
-    """can not create user error:
-        Unable to obtain unique identify
+class UserUnableIdentifyError(Exception):
+    """Unable to obtain unique identify
     """
     pass
