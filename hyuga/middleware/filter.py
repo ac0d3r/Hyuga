@@ -7,64 +7,60 @@ import redis
 from falcon.http_status import HTTPStatus
 
 from hyuga.api.common import BaseResource
-from hyuga.core.errors import (ERR_DATABASE_CONNECTION, DatabaseError,
-                               InvalidParameterError, NotSupportedError)
-from hyuga.core.log import _api_logger
-from hyuga.lib.option import CONFIG, LOG_LEVEL
+from hyuga.core import errors, log
+from hyuga.lib.option import CONFIG
 from hyuga.models.record import HttpRecord
+from hyuga.models.user import User
 
 
 class GlobalFilter:
     """全局过滤
     """
 
-    def __init__(self, debug=None):
-        self.debug = debug
-        if debug is None:
-            self.debug = False
-            if LOG_LEVEL != "info":
-                self.debug = True
-
     def process_request(self, req, resp):
-        _api_logger.debug(
-            'middleware filter GlobalFilter - host: %s path: %s' % (req.host, req.path))
+        log._api_logger.debug(
+            "middleware filter GlobalFilter - host: %s path: %s" % (req.host, req.path))
         # filter out ip and others domain
-        if not self.debug and \
-                not req.host.endswith(CONFIG.DOMAIN):
-            raise NotSupportedError(method=req.method, url=req.url)
+        if not req.host.endswith(CONFIG.DOMAIN):
+            raise errors.NotSupportedError(method=req.method, url=req.url)
 
         # api
         if req.host == CONFIG.API_DOMAIN:
             if not req.method in CONFIG.ALLOW_METHODS:
-                raise NotSupportedError(method=req.method, url=req.url)
+                raise errors.NotSupportedError(method=req.method, url=req.url)
 
-            _api_logger.debug('Method: %s, ContentType: %s' %
-                              (req.method, req.content_type))
-            if 'application/json' != req.content_type:
-                req.context['data'] = None
+            log._api_logger.debug("Method: %s, ContentType: %s" %
+                                  (req.method, req.content_type))
+            if "application/json" != req.content_type:
+                req.context["data"] = None
                 return
             raw_json = req.bounded_stream.read()
             if not raw_json:
-                raise falcon.HTTPBadRequest(
-                    'Empty request body', 'A valid JSON document is required')
+                raise errors.InvalidParameterError(
+                    "A valid JSON document is required")
             try:
-                req.context['data'] = json.loads(raw_json.decode('utf-8'))
+                req.context["data"] = json.loads(raw_json.decode("utf-8"))
             except UnicodeDecodeError:
-                raise InvalidParameterError('Cannot be decoded by utf-8')
+                raise errors.InvalidParameterError(
+                    "Cannot be decoded by utf-8")
             except ValueError:
-                raise InvalidParameterError(
-                    'No JSON object could be decoded or Malformed JSON')
+                raise errors.InvalidParameterError(
+                    "No JSON object could be decoded or Malformed JSON")
 
         # record *.`CONFIG.DOMAIN`(http)
         elif req.host != CONFIG.API_DOMAIN:
-            host = re.search(r'([^\.]+)\.%s' % CONFIG.DOMAIN, req.host)
+            host = re.search(r"([^\.]+)\.%s" % CONFIG.DOMAIN, req.host)
             if not host:
-                raise NotSupportedError(method=req.method, url=req.url)
+                raise errors.NotSupportedError(method=req.method, url=req.url)
+
+            uid = host.group(1)
+            if not User.objects.filter(identify=uid):
+                raise errors.NotSupportedError(method=req.method, url=req.url)
 
             str_data = req.bounded_stream.read().decode("utf-8").rstrip("")
             try:
                 http_record = HttpRecord(
-                    uidentify=host.group(1),
+                    uidentify=uid,
                     name=req.url,
                     method=req.method,
                     data=str_data or None,
@@ -78,4 +74,4 @@ class GlobalFilter:
                     falcon.HTTP_200, body=BaseResource.on_record_http_success())
 
             except redis.exceptions.ConnectionError:
-                raise DatabaseError(ERR_DATABASE_CONNECTION)
+                raise errors.DatabaseError(errors.ERR_DATABASE_CONNECTION)
