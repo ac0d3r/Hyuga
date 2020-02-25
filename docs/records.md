@@ -6,7 +6,7 @@
 
 请求 URL：
 
-- `http://api.[doname]/v1/records?token=`{token}`&type=`{dns | http}`&filter=`{filter}
+- `http://api.[doname]/v1/records?token={token}&type={dns | http}&filter={filter}`
 
 请求方式：
 
