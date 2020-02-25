@@ -7,19 +7,6 @@ services:
     volumes:
       - "./deploy/redis/data:/data"
 
-  mysql:
-    image: mysql
-    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
-    restart: always
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-      MYSQL_DATABASE: hyuga
-      MYSQL_USER: "demo1"
-      MYSQL_PASSWORD: "12345678"
-    volumes:
-      - "./deploy/mysql/data:/var/lib/mysql"
-      - "./deploy/mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
-
   hyuga:
     build:
       context: .
@@ -34,7 +21,6 @@ services:
       - "./:/app"
     links:
       - redis
-      - mysql
 
   nginx:
     image: nginx

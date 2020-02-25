@@ -4,12 +4,11 @@ from wsgiref import simple_server
 import click
 
 from hyuga.app import create_app
-from hyuga.core.database import database
 from hyuga.dns import dnsserver
-from hyuga.models.user import User
+from hyuga.models.user import create_superuser
 
 BANNER = r"""
- __                            
+ __           🎈
 |  |--.--.--.--.--.-----.---.-.
 |     |  |  |  |  |  _  |  _  |
 |__|__|___  |_____|___  |___._|
@@ -26,38 +25,23 @@ def manage():
 @click.option("--username", "username", prompt=True)
 @click.option("--password", "password", prompt=True, hide_input=True,
               confirmation_prompt=True)
-def createsuperuser(username, password):
+def superuser(username, password):
     """Create superuser.
     """
-    click.echo("[CMD] create super user...")
-    User.create(
-        username=username,
-        password=password,
-        identify="admin.hyuga.co",
-        token="",
-        administrator=True
-    )
-    click.echo("[CMD] create super user success...")
-
-
-@manage.command()
-def createtables():
-    """Create tables.
-    """
-    click.echo("[CMD] create tables...")
-    with database:
-        database.create_tables([User], safe=True)
-    click.echo("[CMD] create tables success...")
+    click.echo("[CMD] create superuser...")
+    create_superuser(username, password)
+    click.echo("[CMD] create superuser success...")
 
 
 @manage.command()
 @click.option("--host", "host", default="127.0.0.1")
-@click.option("--port", "port", default=8080)
-def runweb(host, port):
+@click.option("--port", "port", default=5000)
+@click.option("--filter", "testing", default=False)
+def runweb(host, port, testing):
     """Runs the application on a local development server.
     """
     try:
-        app = create_app(testing=True)
+        app = create_app(testing=testing)
         click.echo("[TESTING] %s" % ("="*50))
         click.echo("[TESTING] API Server run on: http://%s:%s" %
                    (host, port))
