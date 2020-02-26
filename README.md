@@ -2,14 +2,17 @@
     <img src="./docs/hyuga.png" width="280" alt="Hyuga" />
 </div>
 <p align="center">
+    <a href="https://github.com/Buzz2d0/Hyuga">
+        <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-1.0.0-yellow"/>
+    </a>
     <a href="https://github.com/Buzz2d0/Hyuga/blob/master/Pipfile">
-        <img alt="Python" src="https://img.shields.io/badge/python-3.7-blue">
+        <img alt="Python" src="https://img.shields.io/badge/python-3.7-blue"/>
     </a>
     <a href="https://github.com/Buzz2d0/Hyuga/blob/master/LICENSE">
-        <img alt="License" src="https://img.shields.io/github/license/Buzz2d0/Hyuga">
+        <img alt="License" src="https://img.shields.io/github/license/Buzz2d0/Hyuga"/>
     </a>
     <a href="https://github.com/Buzz2d0/Hyuga/stargazers">
-        <img alt="stars" src="https://img.shields.io/github/stars/Buzz2d0/Hyuga">
+        <img alt="stars" src="https://img.shields.io/github/stars/Buzz2d0/Hyuga"/>
     </a>
  </p>
 ⚡️Hyuga 是一个用来检测带外(Out-of-Band)流量(DNS查询和HTTP请求)的监控工具。
@@ -38,8 +41,7 @@ Hyuga 的名字来自《火影忍者》中的日向一族的名称，日向一�
 
 **🏝Others**
 
-- 目前 Hyuga API 功能都已经放入此目录下了
-  [apis/](https://github.com/Buzz2d0/Hyuga/blob/master/docs/apis/)
+- API: http://hyuga.co/api
 - API 接口查询：[records.md](./docs/apis/records.md)
 
 ## 👏 主要框架
@@ -57,12 +59,13 @@ Hyuga 的名字来自《火影忍者》中的日向一族的名称，日向一�
 
 - [x] 注册成功路由跳转登录
 - [x] 登录和注册时对返回的错误消息显示
+- [ ] `records/dns` && `records/http` 页面下的 search 功能实现
 - [ ] 添加管理员可用的功能(查看、删除其他用户等等)
 
 **Backend**
 
-- [ ] 优化接口认证
-- [ ] remove mysql
+- [x] 优化接口认证
+- [x] remove mysql
 
 ## 🙏 参考
 
