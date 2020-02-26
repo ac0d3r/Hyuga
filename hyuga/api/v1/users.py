@@ -148,9 +148,9 @@ class UsersSelfOperation(BaseResource):
         except Exception as e:
             _api_logger.info("UsersSelfOperation login ERROR: %s" % e)
             self.on_error(resp, errors.ERR_UNKNOWN)
-        _api_logger.debug("password: %s, %s" % (password, user.password))
         if not user:
             raise errors.UnauthorizedError()
+        _api_logger.debug("password: %s, %s" % (password, user.password))
         if not PasswordHash.py_value(user.password).check_password(password):
             raise errors.UnauthorizedError()
 
