@@ -19,7 +19,7 @@ services:
       - "53:53/udp"
     volumes:
       - "./:/app"
-    links:
+    depends_on:
       - redis
 
   nginx:
@@ -27,7 +27,7 @@ services:
     restart: always
     ports:
       - "80:80"
-    links:
+    depends_on:
       - hyuga
     volumes:
       - "./deploy/nginx/conf.d:/etc/nginx/conf.d"
