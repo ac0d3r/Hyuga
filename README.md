@@ -35,7 +35,7 @@ Hyuga 的名字来自《火影忍者》中的日向一族的名称，日向一�
 
 `📌tips`：目前没有使用邮箱或者手机号进行账号注册导致 Forgot password 功能没有实现。
 
-**🐋Docker 安装：**
+**🐳Docker 安装：**
 
 先阅读此文档：[deploy.md](./docs/deploy.md) 。进行简单设置后，就可以使用 docker 运行。
 
