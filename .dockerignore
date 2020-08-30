@@ -1,14 +1,10 @@
-.venv/
 .vscode/
-.git
+.git/
 docs/
 
 .gitignore
 */.gitkeep
 
-Pipfile
-Pipfile.lock
-LICENSE
+go.mod
+go.sum
 README.md
-
-*.pyc
