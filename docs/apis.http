@@ -1,0 +1,46 @@
+@Host=api.hyuga.io
+@Port=5000
+
+#### Index
+GET http://{{Host}}:{{Port}}/
+
+## Index return-----------------
+{   
+    "code": 200,
+    "message": "OK",
+    "data": {"Server": "Hyuga"},
+    "success": true
+}
+
+## Index return-----------------
+
+
+#### CreateUser
+POST http://{{Host}}:{{Port}}/v1/users
+
+## CreateUser return-----------------
+{
+    "code": 200,
+    "message": "OK",
+    "data": {
+        "token": "testtoken",
+        "identity": "test.hyuga.io"
+    },
+    "success": true
+}
+
+## CreateUser return-----------------
+
+
+#### Records
+GET http://{{Host}}:{{Port}}/v1/records?type=http&token=testtoken&filter=test
+
+## Records return-----------------
+{
+    "code": 200,
+    "message": "OK",
+    "data": [],
+    "success": true
+}
+
+## Records return-----------------
