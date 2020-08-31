@@ -18,10 +18,10 @@ func TestRecorder(t *testing.T) {
 	t.Log("IdentityExist ", identity, Recorder.IdentityExist(identity))
 	t.Log("UserExist ", identity, token, Recorder.UserExist(identity, token))
 
-	dnsData := map[string]interface{}{"name": "test.hyuga.io", "remote_addr": "127.0.0.1:1314"}
+	dnsData := map[string]interface{}{"name": "test.hyuga.io", "remoteAddr": "127.0.0.1:1314"}
 	Recorder.Record("dns", "test", dnsData)
 
-	httpData := map[string]interface{}{"url": "http://test.hyuga.io", "remote_addr": "127.0.0.1:1314", "method": "GET", "cookies": "a=123; b=456"}
+	httpData := map[string]interface{}{"url": "http://test.hyuga.io", "remoteAddr": "127.0.0.1:1314", "method": "GET", "cookies": "a=123; b=456"}
 	Recorder.Record("http", identity, httpData)
 
 	err = Recorder.Record("others", identity, dnsData)

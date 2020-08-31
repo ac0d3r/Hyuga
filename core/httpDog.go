@@ -39,14 +39,14 @@ func httpDog() echo.MiddlewareFunc {
 			// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 			// url
 			// method
-			// remote_addr
+			// remoteAddr
 			// cookies
 			// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 			httpData := map[string]interface{}{
-				"url":         req.RequestURI,
-				"method":      req.Method,
-				"remote_addr": req.RemoteAddr,
-				"cookies":     splicingCookies(req.Cookies()),
+				"url":        req.RequestURI,
+				"method":     req.Method,
+				"remoteAddr": req.RemoteAddr,
+				"cookies":    splicingCookies(req.Cookies()),
 			}
 			identity := parseIdentity(host)
 			log.Debug("httpDog identity: ", identity)

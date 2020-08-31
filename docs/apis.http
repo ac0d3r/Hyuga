@@ -33,14 +33,35 @@ POST http://{{Host}}:{{Port}}/v1/users
 
 
 #### Records
-GET http://{{Host}}:{{Port}}/v1/records?type=http&token=testtoken&filter=test
+GET http://{{Host}}:{{Port}}/v1/records?type=dns&token=testtoken&filter=
 
-## Records return-----------------
+## HTTP Records return-----------------
 {
-    "code": 200,
-    "message": "OK",
-    "data": [],
-    "success": true
+  "code": 200,
+  "message": "OK",
+  "data": [
+    {
+      "cookies": "",
+      "method": "GET",
+      "remoteAddr": "127.0.0.1:51784",
+      "ts": "1598789985898214000",
+      "url": "/v1/records?type=http\u0026token=testtoken"
+    }
+  ],
+  "success": true
 }
 
+## DNS Records return-----------------
+{
+  "code": 200,
+  "message": "OK",
+  "data": [
+    {
+      "name": "test.hyuga.io.",
+      "remoteAddr": "127.0.0.1:54517",
+      "ts": "1598862979435977000"
+    }
+  ],
+  "success": true
+}
 ## Records return-----------------

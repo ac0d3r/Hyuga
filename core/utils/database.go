@@ -157,24 +157,27 @@ func (rc *record) GetRecords(rtype, token, filter string) ([]map[string]string, 
 		limit = len(recordKeys)
 	}
 	for _, key := range recordKeys[:limit] {
-		value, err := rc.rdb.HGetAll(ctx, key).Result()
+		ts := strings.Split(key, "-")[2]
+		data, err := rc.rdb.HGetAll(ctx, key).Result()
 		if err != nil {
 			log.Error(logformat(err.Error()))
+			continue
 		}
-		log.Debug(value)
+		data["ts"] = ts
+		log.Debug(data)
 		// filter records
 		if filter == "" {
-			result = append(result, value)
+			result = append(result, data)
 			continue
 		}
 		switch rtype {
 		case "dns":
-			if strings.Contains(value["name"], filter) {
-				result = append(result, value)
+			if strings.Contains(data["name"], filter) {
+				result = append(result, data)
 			}
 		case "http":
-			if strings.Contains(value["url"], filter) {
-				result = append(result, value)
+			if strings.Contains(data["url"], filter) {
+				result = append(result, data)
 			}
 		}
 	}

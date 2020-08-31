@@ -53,7 +53,7 @@ func parseQuery(remoteAddr string, m *dns.Msg) {
 	for _, q := range m.Question {
 		// only record dns queries once
 		if !records {
-			dnsData := map[string]interface{}{"name": q.Name, "remote_addr": remoteAddr}
+			dnsData := map[string]interface{}{"name": q.Name, "remoteAddr": remoteAddr}
 			identity := parseIdentity(q.Name)
 			if identity == "" {
 				goto ANSWER
