@@ -10,5 +10,5 @@ func main() {
 
 	app := Hyuga.Create()
 	go Hyuga.DNSDogServe()
-	app.Logger.Fatal(app.Start(":5000"))
+	app.Logger.Fatal(app.Start("localhost:5000"))
 }

@@ -23,6 +23,6 @@ sudo systemctl start redis
 sudo yum install -y supervisor
 sudo systemctl enable supervisord
 sudo systemctl start supervisord
-sudo cp deploy/supervisor-hyuga.conf /etc/supervisor/conf.d/ # 配置文件
-sudo systemctl reload supervisord
+sudo cp deploy/supervisor-hyuga.ini /etc/supervisord.d/ # 配置文件
+sudo supervisorctl reload
 sudo supervisorctl start hyuga

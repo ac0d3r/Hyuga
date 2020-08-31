@@ -35,7 +35,7 @@ server {
 
 ### Nginx
 
-1. `vim /etc/nginx/nginx.conf` 注释掉主配置文件中的内容：
+1. `vim /etc/nginx/nginx.conf` 需要注释掉主配置文件中的内容：
 ```conf
 # listen       80 default_server;
 # listen       [::]:80 default_server;
