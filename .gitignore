@@ -15,4 +15,4 @@
 # vendor/
 go.sum
 .env
-.vscode
+.vscode/
