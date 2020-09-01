@@ -54,7 +54,11 @@
 			"dns": [[50, "DNS Query Record"], [25, "Remote Address"], [25, "Created Time"]],
 			"http": [[35, "HTTP Request Record"], [10, "Method"], [15, "Remote Address"], [20, "Cookies"], [20, "Created Time"]]
 		}
-
+		function renderUserInfo() {
+			if (userDomain != "" && userToken != "") {
+				document.getElementById("myDomain").innerHTML = `Domain: ${userDomain} <br> Token: ${userToken}`;
+			}
+		}
 		function formatTimeStamp(ts) {
 			// ts is Unixtime(Nano)
 			ts = new Date(parseInt(ts) / 1000000);
@@ -68,13 +72,14 @@
 				recordsTable += `<th width="${option[0]}%">${option[1]}</th>`;
 			}
 			document.getElementById("RecordsHeader").innerHTML = recordsTable;
+			document.getElementById("RecordsNoData").innerHTML = "";
+			document.getElementById("RecordsList").innerHTML = "";
 			// 无数据时
 			if (data == undefined || data.length == 0) {
 				document.getElementById("RecordsNoData").innerHTML = `<td colspan="${recordOptions[rtype].length}" align="center">No Data</td>`;
 				return
 			}
 			// 有数据时
-			document.getElementById("RecordsNoData").innerHTML = "";
 			let records = "";
 			for (let rdata of data) {
 				let ts = formatTimeStamp(rdata.ts);
@@ -105,10 +110,11 @@
 				if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 					let resp = JSON.parse(xmlhttp.responseText);
 					if (resp.success == true) {
-						setCookie("identity", resp.data.identity);
-						setCookie("token", resp.data.token);
-
-						document.getElementById("myDomain").innerHTML = `Domain: ${resp.data.identity} <br> Token: ${resp.data.token}`;
+						userDomain = resp.data.identity;
+						userToken = resp.data.token;
+						setCookie("identity", userDomain);
+						setCookie("token", userToken);
+						renderUserInfo();
 					} else {
 						document.getElementById("myDomain").innerHTML = "域名获取失败！";
 					}
@@ -152,8 +158,8 @@
 		<br>
 		<br>
 		<select id="recordsType">
-			<option value="dns" default>Dns</option>
-			<option value="http">Http</option>
+			<option value="dns" default>DNS</option>
+			<option value="http">HTTP</option>
 		</select>
 		<input id="recordsFilter" type="text" placeholder="输入过滤字符"></input>
 		<button type="button" onclick="GetRecords()">Refresh Record</button>
@@ -198,9 +204,7 @@
 	// domain && token 默认从 cookies 获取
 	var userDomain = getCookie("identity");
 	var userToken = getCookie("token");
-	if (userDomain != "" && userToken != "") {
-		document.getElementById("myDomain").innerHTML = `Domain: ${userDomain} <br> Token: ${userToken}`;
-	}
+	renderUserInfo();
 	renderRecodsOptions();
 </script>
 
