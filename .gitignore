@@ -16,3 +16,4 @@
 go.sum
 .env
 .vscode/
+dump.rdb
