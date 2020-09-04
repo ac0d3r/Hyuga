@@ -20,6 +20,17 @@ func splicingCookies(cookies []*http.Cookie) string {
 	return c
 }
 
+func requestedRealIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
+}
+
 // httpDog Echo middleware record request that do not belong to this API
 func httpDog() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -45,7 +56,7 @@ func httpDog() echo.MiddlewareFunc {
 			httpData := map[string]interface{}{
 				"url":        req.RequestURI,
 				"method":     req.Method,
-				"remoteAddr": req.RemoteAddr,
+				"remoteAddr": requestedRealIP(req),
 				"cookies":    splicingCookies(req.Cookies()),
 			}
 			identity := parseIdentity(host)

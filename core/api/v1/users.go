@@ -12,11 +12,13 @@ import (
 )
 
 func genUser() (identity string, token string) {
+	// remove UpperCharset
+	c := utils.Charset + utils.Number
 	length := 4
 	times := 0
 
 	for {
-		identity = utils.RandomString(length)
+		identity = utils.RandomStringWithCharset(length, c)
 		if !utils.Recorder.IdentityExist(identity) {
 			token = utils.RandomString(utils.RandInt(32, 64))
 			if !utils.Recorder.UserExist(identity, token) {
