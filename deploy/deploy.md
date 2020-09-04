@@ -30,7 +30,7 @@ server {
 ```
 
 ## 编译 hyuga.go
-> 项目根目录下`hyuga`文件编译命令如下：
+> CentOS 编译命令如下：
 
 ```shell
 $ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" hyuga.go
