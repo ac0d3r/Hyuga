@@ -17,7 +17,7 @@ func registerRoutes(e *echo.Echo) {
 }
 
 func registerCORS(e *echo.Echo) {
-	origins := []string{conf.Domain}
+	origins := []string{"http://" + conf.Domain}
 	if conf.AppENV == "development" {
 		origins[0] = "*"
 	}
