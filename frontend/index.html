@@ -54,6 +54,18 @@
 			"dns": [[50, "DNS Query Record"], [25, "Remote Address"], [25, "Created Time"]],
 			"http": [[35, "HTTP Request Record"], [10, "Method"], [15, "Remote Address"], [20, "Cookies"], [20, "Created Time"]]
 		}
+		function ishost() {
+			host = window.location.hostname.split(".")
+			if (host.length == 4) {
+				for (let i = 0; i < host.length; i++) {
+					if (isNaN(host[i])) {
+						return true
+					}
+				}
+				return false
+			}
+			return true
+		}
 		function renderUserInfo() {
 			if (userDomain != "" && userToken != "") {
 				document.getElementById("myDomain").innerHTML = `Domain: ${userDomain} <br> Token: ${userToken}`;
@@ -200,7 +212,14 @@
 <script>
 	// init
 	var xmlhttp;
-	var apiHost = "http://api.hyuga.io:5000";
+	var apiHost
+	if (ishost()) {
+		apiHost = `${window.location.protocol}//api.${window.location.host}`;
+	} else {
+		apiHost = `${window.location.protocol}//${window.location.host}`;
+	}
+	console.log(apiHost);
+
 	if (window.XMLHttpRequest) {
 		xmlhttp = new XMLHttpRequest();
 	}
