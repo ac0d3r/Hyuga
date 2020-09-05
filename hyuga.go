@@ -2,7 +2,7 @@ package main
 
 import (
 	Hyuga "Hyuga/core"
-	"Hyuga/core/utils"
+	"Hyuga/utils"
 )
 
 func main() {

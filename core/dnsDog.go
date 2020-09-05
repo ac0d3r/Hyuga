@@ -1,8 +1,8 @@
 package core
 
 import (
-	"Hyuga/core/conf"
-	"Hyuga/core/utils"
+	"Hyuga/conf"
+	"Hyuga/utils"
 	"fmt"
 	"regexp"
 	"strings"

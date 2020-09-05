@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"Hyuga/core/conf"
+	"Hyuga/conf"
 	"context"
 	"fmt"
 	"strings"

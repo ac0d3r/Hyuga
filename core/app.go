@@ -1,9 +1,9 @@
 package core
 
 import (
-	"Hyuga/core/api"
-	v1 "Hyuga/core/api/v1"
-	"Hyuga/core/conf"
+	"Hyuga/api"
+	v1 "Hyuga/api/v1"
+	"Hyuga/conf"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

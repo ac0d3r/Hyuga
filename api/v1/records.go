@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"Hyuga/core/api"
-	"Hyuga/core/utils"
+	"Hyuga/api"
+	"Hyuga/utils"
 	"fmt"
 	"net/http"
 
