@@ -112,6 +112,8 @@ func (rc *record) recordDNS(identity string, data map[string]interface{}) error 
 	err := rc.rdb.HMSet(ctx, key, data).Err()
 	if err != nil {
 		log.Error(logformat(err.Error()))
+	} else {
+		rc.rdb.Expire(ctx, key, conf.RecordExpiration)
 	}
 	return err
 }
