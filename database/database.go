@@ -1,4 +1,4 @@
-package utils
+package database
 
 import (
 	"Hyuga/conf"

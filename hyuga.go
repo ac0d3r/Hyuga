@@ -2,11 +2,11 @@ package main
 
 import (
 	Hyuga "Hyuga/core"
-	"Hyuga/utils"
+	"Hyuga/database"
 )
 
 func main() {
-	defer utils.Recorder.Close()
+	defer database.Recorder.Close()
 
 	app := Hyuga.Create()
 	go Hyuga.DNSDogServe()

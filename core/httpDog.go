@@ -3,7 +3,7 @@ package core
 import (
 	"Hyuga/api"
 	"Hyuga/conf"
-	"Hyuga/utils"
+	"Hyuga/database"
 	"fmt"
 	"net/http"
 	"strings"
@@ -62,7 +62,7 @@ func httpDog() echo.MiddlewareFunc {
 			identity := parseIdentity(host)
 			log.Debug("httpDog identity: ", identity)
 			if identity != "" {
-				err := utils.Recorder.Record("http", identity, httpData)
+				err := database.Recorder.Record("http", identity, httpData)
 				if err != nil {
 					log.Error("httpDog: ", err)
 					goto NOTFOUND

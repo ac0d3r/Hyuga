@@ -3,6 +3,7 @@ package v1
 import (
 	"Hyuga/api"
 	"Hyuga/conf"
+	"Hyuga/database"
 	"Hyuga/utils"
 	"fmt"
 	"net/http"
@@ -19,9 +20,9 @@ func genUser() (identity string, token string) {
 
 	for {
 		identity = utils.RandomStringWithCharset(length, c)
-		if !utils.Recorder.IdentityExist(identity) {
+		if !database.Recorder.IdentityExist(identity) {
 			token = utils.RandomString(utils.RandInt(32, 64))
-			if !utils.Recorder.UserExist(identity, token) {
+			if !database.Recorder.UserExist(identity, token) {
 				break
 			}
 		}
@@ -39,7 +40,7 @@ func genUser() (identity string, token string) {
 func CreateUser(c echo.Context) error {
 	identity, token := genUser()
 	log.Debug("api/v1/CreateUser ", identity, " / ", token)
-	err := utils.Recorder.CreateUser(identity, token)
+	err := database.Recorder.CreateUser(identity, token)
 	if err != nil {
 		code, resp := api.ProcessingError(err)
 		return c.JSON(code, resp)

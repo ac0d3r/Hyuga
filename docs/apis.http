@@ -1,6 +1,7 @@
 @Host=api.hyuga.io
 @Port=5000
-
+@domain=test.hyuga.io
+@token=testtoken
 #### Index
 GET http://{{Host}}:{{Port}}/
 
@@ -33,7 +34,7 @@ POST http://{{Host}}:{{Port}}/v1/users
 
 
 #### Records
-GET http://{{Host}}:{{Port}}/v1/records?type=dns&token=testtoken&filter=
+GET http://{{Host}}:{{Port}}/v1/records?type=dns&token={{token}}&filter=
 
 ## HTTP Records return-----------------
 {

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"Hyuga/api"
+	"Hyuga/database"
 	"Hyuga/utils"
 	"fmt"
 	"net/http"
@@ -18,11 +19,12 @@ func GetRecords(c echo.Context) error {
 
 	log.Debug(fmt.Sprintf("api/v1/GetRecords: type=%s token=%s filter=%s", rtype, token, filter))
 
-	records, err := utils.Recorder.GetRecords(rtype, token, filter)
+	records, err := database.Recorder.GetRecords(rtype, token, filter)
 	if err != nil {
 		code, resp := api.ProcessingError(err)
 		return c.JSON(code, resp)
 	}
+	utils.SortRecords(records)
 	return c.JSON(http.StatusOK, &api.RespJSON{
 		Code:    http.StatusOK,
 		Message: "OK",

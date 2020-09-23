@@ -2,7 +2,7 @@ package core
 
 import (
 	"Hyuga/conf"
-	"Hyuga/utils"
+	"Hyuga/database"
 	"fmt"
 	"regexp"
 	"strings"
@@ -58,7 +58,7 @@ func parseQuery(remoteAddr string, m *dns.Msg) {
 			if identity == "" {
 				goto ANSWER
 			}
-			err := utils.Recorder.Record("dns", identity, dnsData)
+			err := database.Recorder.Record("dns", identity, dnsData)
 			if err != nil {
 				log.Error("dnsDog: ", err)
 			} else {
