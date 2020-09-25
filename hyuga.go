@@ -9,6 +9,6 @@ func main() {
 	defer database.Recorder.Close()
 
 	app := Hyuga.Create()
-	go Hyuga.DNSDogServe()
-	app.Logger.Fatal(app.Start("localhost:5000"))
+	go Hyuga.DNSDogServe(":53")
+	app.Logger.Fatal(app.Start(":5000"))
 }

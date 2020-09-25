@@ -3,6 +3,7 @@ package core
 import (
 	"Hyuga/conf"
 	"Hyuga/database"
+	"Hyuga/utils"
 	"fmt"
 	"regexp"
 	"strings"
@@ -87,7 +88,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	switch r.Opcode {
 	case dns.OpcodeQuery:
-		parseQuery(w.RemoteAddr().String(), m)
+		parseQuery(utils.ParseRemoteAddr(w.RemoteAddr().String(), ":"), m)
 	}
 
 	err := w.WriteMsg(m)
@@ -97,12 +98,10 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 // DNSDogServe dnsDog serve
-func DNSDogServe() {
+func DNSDogServe(addr string) {
 	// attach request handler func
 	dns.HandleFunc(fmt.Sprintf("%s.", conf.Domain), handleDNSRequest)
 
-	// start server
-	addr := ":53"
 	server := &dns.Server{Addr: addr, Net: "udp"}
 	log.Info(fmt.Sprintf("Starting at %s", addr))
 	err := server.ListenAndServe()
