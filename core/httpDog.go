@@ -4,6 +4,7 @@ import (
 	"Hyuga/api"
 	"Hyuga/conf"
 	"Hyuga/database"
+	"Hyuga/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -56,7 +57,7 @@ func httpDog() echo.MiddlewareFunc {
 			httpData := map[string]interface{}{
 				"url":        req.RequestURI,
 				"method":     req.Method,
-				"remoteAddr": requestedRealIP(req),
+				"remoteAddr": utils.ParseRemoteAddr(requestedRealIP(req), ":"),
 				"cookies":    splicingCookies(req.Cookies()),
 			}
 			identity := parseIdentity(host)

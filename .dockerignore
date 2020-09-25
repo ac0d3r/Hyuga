@@ -1,0 +1,12 @@
+.vscode/
+.git
+docs/
+
+.gitignore
+*/.gitkeep
+
+.test
+.DS_Store
+dump.rdb
+LICENSE
+README.md

@@ -36,7 +36,7 @@ DEMO 主页：http://hyuga.co/
 
 ## ⌛ Others
 
-- **Deploy：** 阅读此文档：[deploy.md](./deploy/deploy.md) 。
+- **Deploy：** 阅读此文档：[deploy.md](./docs/deploy.md) 。
 - **FrontEnd：**  使用了 dnslog.cn UI 样式。
 
 ## 🙏 Thx
