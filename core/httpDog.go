@@ -46,7 +46,6 @@ func httpDog() echo.MiddlewareFunc {
 			if host == fmt.Sprintf("api.%s", conf.Domain) {
 				return next(c)
 			}
-
 			// record other requests from `*.huyga.io`
 			// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 			// url

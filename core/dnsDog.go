@@ -21,12 +21,27 @@ func parseIdentity(domain string) string {
 	return ""
 }
 
-func giveAnswer(qName string, qType uint16) (answers map[string][]string) {
+func getDNSRebinding(identity, qName string) (IP string) {
+	if identity == "" {
+		return
+	}
+	_, err := regexp.MatchString(fmt.Sprintf(`\.?([^\.]+)r\.%s.\.%s\.?`, identity, conf.Domain), qName)
+	if err != nil {
+		log.Error("getDNSRebinding regexp match: ", err)
+		return
+	}
+
+	return
+}
+
+func giveAnswer(identity, qName string, qType uint16) (answers map[string][]string) {
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	// 	*.hyuga.io.		IN 	NS		ns1.buzz.io.
 	// 	*.hyuga.io.		IN 	NS		ns2.buzz.io.
 	// 	*.hyuga.io.		IN 	A		1.1.1.1
 	// 	hyuga.io. 		IN 	A   	1.1.1.1
+	// dnsRebinding
+	// 	*.r.*.hyuga.io.	IN 	A		1.1.1.1
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	answers = make(map[string][]string)
 	if !strings.HasSuffix(qName, fmt.Sprintf("%s.", conf.Domain)) {
@@ -50,27 +65,22 @@ func giveAnswer(qName string, qType uint16) (answers map[string][]string) {
 }
 
 func parseQuery(remoteAddr string, m *dns.Msg) {
-	records := false
 	for _, q := range m.Question {
-		// only record dns queries once
-		if !records {
-			dnsData := map[string]interface{}{"name": strings.TrimRight(q.Name, "."), "remoteAddr": remoteAddr}
-			identity := parseIdentity(q.Name)
-			if identity == "" {
-				goto ANSWER
-			}
+		dnsData := map[string]interface{}{
+			"name":       strings.TrimRight(q.Name, "."),
+			"remoteAddr": remoteAddr}
+		identity := parseIdentity(q.Name)
+
+		if identity != "" {
 			err := database.Recorder.Record("dns", identity, dnsData)
 			if err != nil {
 				log.Error("dnsDog: ", err)
-			} else {
-				records = true
 			}
 		}
 
-	ANSWER:
-		answers := giveAnswer(q.Name, q.Qtype)
+		answers := giveAnswer(identity, q.Name, q.Qtype)
 		for qtype := range answers {
-			log.Debug(fmt.Sprintf("Query for %s %s", qtype, q.Name))
+			log.Debug(fmt.Sprintf("dnsDog: Query for %s %s", qtype, q.Name))
 			for _, record := range answers[qtype] {
 				rr, err := dns.NewRR(fmt.Sprintf("%s %s %s", q.Name, qtype, record))
 				if err == nil {

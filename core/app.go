@@ -14,6 +14,7 @@ func registerRoutes(e *echo.Echo) {
 	e.GET("/", api.Index)
 	e.POST("/v1/users", v1.CreateUser)
 	e.GET("/v1/records", v1.GetRecords)
+	e.POST("/v1/users/:identity/dns-rebinding", v1.SetUserDNSRebinding)
 }
 
 func registerCORS(e *echo.Echo) {

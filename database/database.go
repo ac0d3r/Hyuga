@@ -41,6 +41,7 @@ func filterRecordType(rtype string) error {
 }
 
 func genRecordsKey(rtype, identity string) string {
+	// RecordsKey: [record-type]-[identity]-[timestamp]
 	return fmt.Sprintf("%s-%s-%d", rtype, identity, time.Now().UnixNano())
 }
 
@@ -57,6 +58,52 @@ func newRecorder() *record {
 	}
 	log.Debug(logformat(pong))
 	return &record{rdb: rdb}
+}
+
+func (rc *record) CreateUser(identity, token string) error {
+	// User store struct
+	// "user-[identity]-[token]": timestamp
+	err := rc.rdb.SetNX(ctx, fmt.Sprintf("user-%s-%s", identity, token), time.Now().UnixNano(), 0).Err()
+	if err != nil {
+		log.Error(logformat(err.Error()))
+	}
+	return err
+}
+
+func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
+	// get user dns-rebinding
+	// "[identity]": ["127.0.0.1", "192.168.1.1"]
+	if !rc.IdentityExist(identity) {
+		return IP, fmt.Errorf("Not Found user identity: '%s'", identity)
+	}
+	len, err := rc.rdb.LLen(ctx, identity).Result()
+	if err != nil {
+		return IP, err
+	}
+	log.Debug("identity DNSRebinding: length ", len)
+	// utils.RandInt(0, int(len))
+	// log.Error(logformat(err.Error()))
+	return IP, nil
+}
+
+func (rc *record) SetUserDNSRebinding(identity string, hosts []string) error {
+	// set user dns-rebinding
+	var err error
+	if !rc.IdentityExist(identity) {
+		return fmt.Errorf("Not Found user identity: '%s'", identity)
+	}
+	if !rc.rdb.Exists(ctx, identity) {
+
+	}
+	_, err = rc.rdb.LPush(ctx, identity).Result()
+	// for index, host := range hosts {
+	// 	_, err = rc.rdb.LSet(ctx, identity, int64(index), host).Result()
+	// 	if err != nil {
+	// 		log.Error(logformat(err.Error()))
+	// 		break
+	// 	}
+	// }
+	return err
 }
 
 func (rc *record) IdentityExist(identity string) bool {
@@ -82,14 +129,6 @@ func (rc *record) UserExist(identity, token string) bool {
 	return true
 }
 
-func (rc *record) CreateUser(identity, token string) error {
-	err := rc.rdb.SetNX(ctx, fmt.Sprintf("user-%s-%s", identity, token), time.Now().UnixNano(), 0).Err()
-	if err != nil {
-		log.Error(logformat(err.Error()))
-	}
-	return err
-}
-
 func (rc *record) Record(rtype, identity string, data map[string]interface{}) error {
 	// do not record when identity does not exist
 	if !rc.IdentityExist(identity) {
@@ -108,6 +147,13 @@ func (rc *record) Record(rtype, identity string, data map[string]interface{}) er
 }
 
 func (rc *record) recordDNS(identity string, data map[string]interface{}) error {
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// {
+	//	"name": [dns query name],
+	//	"remoteAddr": [remote address]
+	// }
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
 	key := genRecordsKey("dns", identity)
 	err := rc.rdb.HMSet(ctx, key, data).Err()
 	if err != nil {
@@ -119,6 +165,15 @@ func (rc *record) recordDNS(identity string, data map[string]interface{}) error 
 }
 
 func (rc *record) recordHTTP(identity string, data map[string]interface{}) error {
+	// record other requests from `*.huyga.io`
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// {
+	// 	"url":        [request uri],
+	// 	"method":     [request method],
+	// 	"remoteAddr": [request remote address],
+	// 	"cookies":    [request cookies],
+	// }
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	key := genRecordsKey("http", identity)
 	err := rc.rdb.HMSet(ctx, key, data).Err()
 	if err != nil {

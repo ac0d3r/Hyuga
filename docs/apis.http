@@ -1,7 +1,10 @@
+# vscode 安装 `REST Client` 扩展
 @Host=api.hyuga.io
 @Port=5000
 @domain=test.hyuga.io
 @token=testtoken
+@identity=test
+
 #### Index
 GET http://{{Host}}:{{Port}}/
 
@@ -31,6 +34,16 @@ POST http://{{Host}}:{{Port}}/v1/users
 }
 
 ## CreateUser return-----------------
+
+
+#### Set User DNSRebinding
+POST http://{{Host}}:{{Port}}/v1/users/{{identity}}/dns-rebinding
+Content-Type: application/json
+
+{
+  "hosts":["127.0.0.1"]
+}
+
 
 
 #### Records
