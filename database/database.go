@@ -77,18 +77,20 @@ func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
 	if !rc.IdentityExist(identity) {
 		return IP, fmt.Errorf("Not Found user identity: '%s'", identity)
 	}
-	len, err := rc.rdb.LLen(ctx, identity).Result()
-	log.Debug("identity DNSRebinding: length ", len)
-	if len == 0 || err != nil {
+	llen, err := rc.rdb.LLen(ctx, identity).Result()
+	log.Debug("identity DNSRebinding: length ", llen)
+	if err != nil {
 		log.Error(logformat(err.Error()))
+	}
+	if llen == 0 || err != nil {
 		return IP, err
 	}
 	// random get dns-rebinding ip
 	var index int64
-	if len == 1 {
+	if llen == 1 {
 		index = 0
 	} else {
-		index = int64(utils.RandInt(0, int(len-1)))
+		index = int64(utils.RandInt(0, int(llen-1)))
 	}
 	IP, err = rc.rdb.LIndex(ctx, identity, index).Result()
 	if err != nil {

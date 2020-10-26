@@ -12,6 +12,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+var ignoreIdentityList = []string{"api", "admin"}
+
 func parseIdentity(domain string) string {
 	reg := regexp.MustCompile(fmt.Sprintf(`\.?([^\.]+)\.%s\.?`, conf.Domain))
 	subs := reg.FindStringSubmatch(domain)
@@ -19,6 +21,15 @@ func parseIdentity(domain string) string {
 		return subs[1]
 	}
 	return ""
+}
+
+func isIgnoreIdentity(identity string) bool {
+	for _, v := range ignoreIdentityList {
+		if identity == v {
+			return true
+		}
+	}
+	return false
 }
 
 func getDNSRebinding(identity, qName string) (IP string) {
@@ -53,15 +64,14 @@ func giveAnswer(identity, qName string, qType uint16) (answers map[string][]stri
 	if IP != "" {
 		ips[0] = IP
 	}
-
 	switch qType {
 	case dns.TypeA:
 		answers["A"] = ips
-	case dns.TypeNS:
-		answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
+	// case dns.TypeNS:
+	// 	answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
 	case dns.TypeANY:
 		answers["A"] = ips
-		answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
+		// answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
 	}
 	return
 }
@@ -70,7 +80,7 @@ func parseQuery(remoteAddr string, m *dns.Msg) {
 	for _, q := range m.Question {
 		// record dns query
 		identity := parseIdentity(q.Name)
-		if identity != "" {
+		if identity != "" && !isIgnoreIdentity(identity) {
 			dnsData := map[string]interface{}{
 				"name":       strings.TrimRight(q.Name, "."),
 				"remoteAddr": remoteAddr}
@@ -81,9 +91,11 @@ func parseQuery(remoteAddr string, m *dns.Msg) {
 		}
 
 		// make answers for dns query
+		log.Debug(fmt.Sprintf("dnsDog: Query for %s %s",
+			dns.Type(q.Qtype).String(),
+			q.Name))
 		answers := giveAnswer(identity, q.Name, q.Qtype)
 		for qtype := range answers {
-			log.Debug(fmt.Sprintf("dnsDog: Query for %s %s", qtype, q.Name))
 			for _, record := range answers[qtype] {
 				rr, err := dns.NewRR(fmt.Sprintf("%s %s %s", q.Name, qtype, record))
 				if err == nil {
