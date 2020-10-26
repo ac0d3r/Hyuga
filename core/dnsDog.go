@@ -25,12 +25,12 @@ func getDNSRebinding(identity, qName string) (IP string) {
 	if identity == "" {
 		return
 	}
-	_, err := regexp.MatchString(fmt.Sprintf(`\.?([^\.]+)r\.%s.\.%s\.?`, identity, conf.Domain), qName)
-	if err != nil {
-		log.Error("getDNSRebinding regexp match: ", err)
+	match, err := regexp.MatchString(fmt.Sprintf(`\.?.*r\.%s\.%s\.?`, identity, conf.Domain), qName)
+	if !match || err != nil {
+		log.Debug("getDNSRebinding regexp match: ", match, err)
 		return
 	}
-
+	IP, err = database.Recorder.GetUserDNSRebinding(identity)
 	return
 }
 
@@ -41,24 +41,26 @@ func giveAnswer(identity, qName string, qType uint16) (answers map[string][]stri
 	// 	*.hyuga.io.		IN 	A		1.1.1.1
 	// 	hyuga.io. 		IN 	A   	1.1.1.1
 	// dnsRebinding
-	// 	*.r.*.hyuga.io.	IN 	A		1.1.1.1
+	// 	*.r.*.hyuga.io.	IN 	A		`rebinding hosts`
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	answers = make(map[string][]string)
 	if !strings.HasSuffix(qName, fmt.Sprintf("%s.", conf.Domain)) {
 		return
 	}
-	multRe := fmt.Sprintf(`.*\.%s\.`, conf.Domain)
+	ips := []string{conf.ServerIP}
+	// handler dns-rebinding
+	IP := getDNSRebinding(identity, qName)
+	if IP != "" {
+		ips[0] = IP
+	}
 
 	switch qType {
 	case dns.TypeA:
-		answers["A"] = []string{conf.ServerIP}
+		answers["A"] = ips
 	case dns.TypeNS:
-		match, _ := regexp.MatchString(multRe, qName)
-		if match {
-			answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
-		}
+		answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
 	case dns.TypeANY:
-		answers["A"] = []string{conf.ServerIP}
+		answers["A"] = ips
 		answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
 	}
 	return
@@ -66,18 +68,19 @@ func giveAnswer(identity, qName string, qType uint16) (answers map[string][]stri
 
 func parseQuery(remoteAddr string, m *dns.Msg) {
 	for _, q := range m.Question {
-		dnsData := map[string]interface{}{
-			"name":       strings.TrimRight(q.Name, "."),
-			"remoteAddr": remoteAddr}
+		// record dns query
 		identity := parseIdentity(q.Name)
-
 		if identity != "" {
+			dnsData := map[string]interface{}{
+				"name":       strings.TrimRight(q.Name, "."),
+				"remoteAddr": remoteAddr}
 			err := database.Recorder.Record("dns", identity, dnsData)
 			if err != nil {
 				log.Error("dnsDog: ", err)
 			}
 		}
 
+		// make answers for dns query
 		answers := giveAnswer(identity, q.Name, q.Qtype)
 		for qtype := range answers {
 			log.Debug(fmt.Sprintf("dnsDog: Query for %s %s", qtype, q.Name))

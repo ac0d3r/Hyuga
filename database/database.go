@@ -2,6 +2,7 @@ package database
 
 import (
 	"Hyuga/conf"
+	"Hyuga/utils"
 	"context"
 	"fmt"
 	"strings"
@@ -72,37 +73,56 @@ func (rc *record) CreateUser(identity, token string) error {
 
 func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
 	// get user dns-rebinding
-	// "[identity]": ["127.0.0.1", "192.168.1.1"]
+	// [identity]: ["127.0.0.1", "192.168.1.1", ...]
 	if !rc.IdentityExist(identity) {
 		return IP, fmt.Errorf("Not Found user identity: '%s'", identity)
 	}
 	len, err := rc.rdb.LLen(ctx, identity).Result()
-	if err != nil {
+	log.Debug("identity DNSRebinding: length ", len)
+	if len == 0 || err != nil {
+		log.Error(logformat(err.Error()))
 		return IP, err
 	}
-	log.Debug("identity DNSRebinding: length ", len)
-	// utils.RandInt(0, int(len))
-	// log.Error(logformat(err.Error()))
-	return IP, nil
+	// random get dns-rebinding ip
+	var index int64
+	if len == 1 {
+		index = 0
+	} else {
+		index = int64(utils.RandInt(0, int(len-1)))
+	}
+	IP, err = rc.rdb.LIndex(ctx, identity, index).Result()
+	if err != nil {
+		log.Error(logformat(err.Error()))
+	}
+	return IP, err
 }
 
-func (rc *record) SetUserDNSRebinding(identity string, hosts []string) error {
+func (rc *record) SetUserDNSRebinding(identity, token string, hosts []interface{}) error {
 	// set user dns-rebinding
 	var err error
-	if !rc.IdentityExist(identity) {
-		return fmt.Errorf("Not Found user identity: '%s'", identity)
+	if !rc.UserExist(identity, token) {
+		return fmt.Errorf("The '%s' does not exist or the token is wrong", identity)
 	}
-	if !rc.rdb.Exists(ctx, identity) {
+	res, err := rc.rdb.Exists(ctx, identity).Result()
+	if err != nil {
+		log.Error(logformat(err.Error()))
+		goto RETURNERR
+	}
+	// remove all dns rebinding
+	if res != 0 {
+		_, err = rc.rdb.LTrim(ctx, identity, int64(-1), int64(0)).Result()
+		if err != nil {
+			log.Error(logformat(err.Error()))
+			goto RETURNERR
+		}
+	}
+	_, err = rc.rdb.LPush(ctx, identity, hosts...).Result()
+	if err != nil {
+		log.Error(logformat(err.Error()))
+		goto RETURNERR
+	}
 
-	}
-	_, err = rc.rdb.LPush(ctx, identity).Result()
-	// for index, host := range hosts {
-	// 	_, err = rc.rdb.LSet(ctx, identity, int64(index), host).Result()
-	// 	if err != nil {
-	// 		log.Error(logformat(err.Error()))
-	// 		break
-	// 	}
-	// }
+RETURNERR:
 	return err
 }
 

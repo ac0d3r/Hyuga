@@ -55,6 +55,7 @@ func CreateUser(c echo.Context) error {
 }
 
 type rebinding struct {
+	Token string   `json:"token"`
 	Hosts []string `json:"hosts"`
 }
 
@@ -67,9 +68,18 @@ func SetUserDNSRebinding(c echo.Context) error {
 		code, resp := api.ProcessingError(err)
 		return c.JSON(code, resp)
 	}
+	// check dnsrebinging ip
+	for index, ip := range dnsRebinding.Hosts {
+		if !utils.CheckIP(ip) {
+			code, resp := api.ProcessingError(fmt.Errorf(`Invalid Parameter 'hosts[%d]' "%s"`, index, ip))
+			return c.JSON(code, resp)
+		}
+	}
 	log.Debug("api/v1/SetUserDNSRebinding ", identity, dnsRebinding.Hosts)
 
-	err := database.Recorder.SetUserDNSRebinding(identity, dnsRebinding.Hosts)
+	err := database.Recorder.SetUserDNSRebinding(identity,
+		dnsRebinding.Token,
+		utils.StringSlice2AnySlice(dnsRebinding.Hosts))
 	if err != nil {
 		code, resp := api.ProcessingError(err)
 		return c.JSON(code, resp)
