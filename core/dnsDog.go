@@ -5,12 +5,32 @@ import (
 	"Hyuga/database"
 	"Hyuga/utils"
 	"fmt"
+	"net"
 	"regexp"
 	"strings"
 
 	"github.com/labstack/gommon/log"
 	"github.com/miekg/dns"
 )
+
+const (
+	LogTTL     = 0
+	NsTTL      = 10 * 60
+	DefaultTTL = 5 * 60
+	XIPTTL     = 24 * 60 * 60
+)
+
+var ignoreIdentityList = []string{"api", "admin"}
+var nss = []string{conf.NS1Domain, conf.NS2Domain}
+
+func isIgnoreIdentity(identity string) bool {
+	for _, v := range ignoreIdentityList {
+		if identity == v {
+			return true
+		}
+	}
+	return false
+}
 
 func parseIdentity(domain string) string {
 	reg := regexp.MustCompile(fmt.Sprintf(`\.?([^\.]+)\.%s\.?`, conf.Domain))
@@ -21,76 +41,112 @@ func parseIdentity(domain string) string {
 	return ""
 }
 
-func giveAnswer(qName string, qType uint16) (answers map[string][]string) {
+func getDNSRebinding(identity, qName string) (IP string) {
+	if identity == "" {
+		return
+	}
+	match, err := regexp.MatchString(fmt.Sprintf(`\.?.*r\.%s\.%s\.?`, identity, conf.Domain), qName)
+	if !match || err != nil {
+		log.Debug("getDNSRebinding regexp match: ", match, err)
+		return
+	}
+	IP, err = database.Recorder.GetUserDNSRebinding(identity)
+	return
+}
+
+func giveAnswer(identity, qName string, qType uint16, ttl uint32) dns.RR {
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	// 	*.hyuga.io.		IN 	NS		ns1.buzz.io.
 	// 	*.hyuga.io.		IN 	NS		ns2.buzz.io.
 	// 	*.hyuga.io.		IN 	A		1.1.1.1
 	// 	hyuga.io. 		IN 	A   	1.1.1.1
+	// dnsRebinding
+	// 	*.r.*.hyuga.io.	IN 	A		`rebinding hosts`
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	answers = make(map[string][]string)
 	if !strings.HasSuffix(qName, fmt.Sprintf("%s.", conf.Domain)) {
-		return
+		return nil
 	}
-	multRe := fmt.Sprintf(`.*\.%s\.`, conf.Domain)
-
+	respip := conf.ServerIP
+	// handler dns-rebinding
+	if ttl == LogTTL {
+		rebindingIP := getDNSRebinding(identity, qName)
+		if rebindingIP != "" {
+			respip = rebindingIP
+		}
+	}
+	rrHeader := dns.RR_Header{
+		Name:   qName,
+		Rrtype: qType,
+		Class:  dns.ClassINET,
+		Ttl:    ttl,
+	}
 	switch qType {
 	case dns.TypeA:
-		answers["A"] = []string{conf.ServerIP}
+		return &dns.A{Hdr: rrHeader, A: net.ParseIP(respip)}
 	case dns.TypeNS:
-		match, _ := regexp.MatchString(multRe, qName)
-		if match {
-			answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
-		}
-	case dns.TypeANY:
-		answers["A"] = []string{conf.ServerIP}
-		answers["NS"] = []string{conf.NS1Domain, conf.NS2Domain}
+		return &dns.NS{Hdr: rrHeader, Ns: nss[utils.RandInt(0, len(nss)-1)]}
+	default:
+		return nil
 	}
-	return
 }
 
-func parseQuery(remoteAddr string, m *dns.Msg) {
-	records := false
+func parseQuery(w dns.ResponseWriter, req *dns.Msg, m *dns.Msg) {
+	ttl := DefaultTTL
 	for _, q := range m.Question {
-		// only record dns queries once
-		if !records {
-			dnsData := map[string]interface{}{"name": strings.TrimRight(q.Name, "."), "remoteAddr": remoteAddr}
-			identity := parseIdentity(q.Name)
-			if identity == "" {
-				goto ANSWER
-			}
+		if q.Qclass != dns.ClassINET {
+			dns.HandleFailed(w, req)
+			return
+		}
+		identity := parseIdentity(q.Name)
+		// record dns query
+		if identity != "" && !isIgnoreIdentity(identity) {
+			dnsData := map[string]interface{}{
+				"name":       strings.TrimRight(q.Name, "."),
+				"remoteAddr": utils.ParseRemoteAddr(w.RemoteAddr().String(), ":")}
 			err := database.Recorder.Record("dns", identity, dnsData)
 			if err != nil {
 				log.Error("dnsDog: ", err)
 			} else {
-				records = true
+				ttl = LogTTL
 			}
 		}
 
-	ANSWER:
-		answers := giveAnswer(q.Name, q.Qtype)
-		for qtype := range answers {
-			log.Debug(fmt.Sprintf("Query for %s %s", qtype, q.Name))
-			for _, record := range answers[qtype] {
-				rr, err := dns.NewRR(fmt.Sprintf("%s %s %s", q.Name, qtype, record))
-				if err == nil {
-					m.Answer = append(m.Answer, rr)
-				}
+		// make answers for dns query
+		log.Debug(fmt.Sprintf("dnsDog: Query for %s %s",
+			dns.Type(q.Qtype).String(),
+			q.Name))
+		switch q.Qtype {
+		case dns.TypeANY:
+			fallthrough
+		case dns.TypeA:
+			a := giveAnswer(identity, q.Name, dns.TypeA, uint32(ttl))
+			if a != nil {
+				m.Answer = append(m.Answer, a)
 			}
+		case dns.TypeAAAA:
+			// not ipv6 now
+			dns.HandleFailed(w, req)
+		case dns.TypeNS:
+			ttl = NsTTL
+			a := giveAnswer(identity, q.Name, dns.TypeNS, uint32(ttl))
+			if a != nil {
+				m.Answer = append(m.Answer, a)
+			}
+		default:
+			dns.HandleFailed(w, req)
 		}
 	}
 }
 
-func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
+func handleDNSRequest(w dns.ResponseWriter, req *dns.Msg) {
 	m := new(dns.Msg)
-	m.SetReply(r)
+	m.SetReply(req)
 	m.Compress = false
 
-	switch r.Opcode {
+	switch req.Opcode {
 	case dns.OpcodeQuery:
-		parseQuery(utils.ParseRemoteAddr(w.RemoteAddr().String(), ":"), m)
+		parseQuery(w, req, m)
 	}
-
 	err := w.WriteMsg(m)
 	if err != nil {
 		log.Error(fmt.Sprintf("Failed to write message:%s", err))

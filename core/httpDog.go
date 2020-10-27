@@ -7,12 +7,16 @@ import (
 	"Hyuga/utils"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 )
 
+func fullURL(scheme, host string, req *url.URL) string {
+	return fmt.Sprintf("%s://%s%s", scheme, host, req.RequestURI())
+}
 func splicingCookies(cookies []*http.Cookie) string {
 	c := ""
 	for _, cookie := range cookies {
@@ -46,7 +50,6 @@ func httpDog() echo.MiddlewareFunc {
 			if host == fmt.Sprintf("api.%s", conf.Domain) {
 				return next(c)
 			}
-
 			// record other requests from `*.huyga.io`
 			// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 			// url
@@ -55,7 +58,7 @@ func httpDog() echo.MiddlewareFunc {
 			// cookies
 			// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 			httpData := map[string]interface{}{
-				"url":        req.RequestURI,
+				"url":        fullURL(c.Scheme(), host, req.URL),
 				"method":     req.Method,
 				"remoteAddr": utils.ParseRemoteAddr(requestedRealIP(req), ":"),
 				"cookies":    splicingCookies(req.Cookies()),

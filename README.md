@@ -42,3 +42,7 @@ DEMO 主页：http://hyuga.co/
 ## 🙏 Thx
 
 - http://dnslog.cn/
+
+## 更新
+
+- 2020.10.27 支持 dns-rebinding (todo: ui 需要重构)

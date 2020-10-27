@@ -25,9 +25,10 @@ func GetRecords(c echo.Context) error {
 		return c.JSON(code, resp)
 	}
 	utils.SortRecords(records)
-	return c.JSON(http.StatusOK, &api.RespJSON{
-		Code:    http.StatusOK,
-		Message: "OK",
+	code := http.StatusOK
+	return c.JSON(code, &api.RespJSON{
+		Code:    code,
+		Message: http.StatusText(code),
 		Data:    records,
 		Success: true,
 	})
