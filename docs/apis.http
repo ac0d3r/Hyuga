@@ -36,6 +36,27 @@ POST http://{{Host}}:{{Port}}/v1/users
 ## CreateUser return-----------------
 
 
+#### Get User DNSRebinding
+GET http://{{Host}}:{{Port}}/v1/users/{{identity}}/dns-rebinding
+Content-Type: application/json
+
+{
+  "token": "{{token}}"
+}
+
+## Get-User-DNSRebinding return-----------------
+{
+    "code": 200,
+    "message": "OK",
+    "data": {
+      "rebinding_hosts": ["127.0.0.1", "192.168.1.1"]
+    },
+    "success": true
+}
+
+## Get-User-DNSRebinding return-----------------
+
+
 #### Set User DNSRebinding
 POST http://{{Host}}:{{Port}}/v1/users/{{identity}}/dns-rebinding
 Content-Type: application/json

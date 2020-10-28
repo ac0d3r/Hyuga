@@ -50,7 +50,13 @@ func getDNSRebinding(identity, qName string) (IP string) {
 		log.Debug("getDNSRebinding regexp match: ", match, err)
 		return
 	}
-	IP, err = database.Recorder.GetUserDNSRebinding(identity)
+	IPs, err := database.Recorder.GetUserDNSRebinding(identity, true)
+	if err != nil {
+		log.Error("getDNSRebinding", err)
+	}
+	if len(IPs) >= 1 {
+		IP = IPs[0]
+	}
 	return
 }
 

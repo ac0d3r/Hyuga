@@ -71,11 +71,11 @@ func (rc *record) CreateUser(identity, token string) error {
 	return err
 }
 
-func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
+func (rc *record) GetUserDNSRebinding(identity string, random bool) (IPs []string, err error) {
 	// get user dns-rebinding
 	// [identity]: ["127.0.0.1", "192.168.1.1", ...]
 	if !rc.IdentityExist(identity) {
-		return IP, fmt.Errorf("Not Found user identity: '%s'", identity)
+		return IPs, fmt.Errorf("Not Found user identity: '%s'", identity)
 	}
 	llen, err := rc.rdb.LLen(ctx, identity).Result()
 	log.Debug("identity DNSRebinding: length ", llen)
@@ -83,7 +83,14 @@ func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
 		log.Error(logformat(err.Error()))
 	}
 	if llen == 0 || err != nil {
-		return IP, err
+		return IPs, err
+	}
+	IPs, err = rc.rdb.LRange(ctx, identity, 0, llen).Result()
+	if err != nil {
+		log.Error(logformat(err.Error()))
+	}
+	if !random {
+		return IPs, err
 	}
 	// random get dns-rebinding ip
 	var index int64
@@ -92,11 +99,7 @@ func (rc *record) GetUserDNSRebinding(identity string) (IP string, err error) {
 	} else {
 		index = int64(utils.RandInt(0, int(llen-1)))
 	}
-	IP, err = rc.rdb.LIndex(ctx, identity, index).Result()
-	if err != nil {
-		log.Error(logformat(err.Error()))
-	}
-	return IP, err
+	return []string{IPs[index]}, err
 }
 
 func (rc *record) SetUserDNSRebinding(identity, token string, hosts []interface{}) error {

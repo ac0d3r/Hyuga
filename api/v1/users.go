@@ -54,15 +54,45 @@ func CreateUser(c echo.Context) error {
 	})
 }
 
-type rebinding struct {
-	Token string   `json:"token"`
+type getRebinding struct {
+	Token string `json:"token"`
+}
+type setRebinding struct {
+	getRebinding
 	Hosts []string `json:"hosts"`
+}
+
+// GetUserDNSRebinding get user dns-rebinding hosts
+func GetUserDNSRebinding(c echo.Context) error {
+	identity := c.Param("identity")
+	dnsRebinding := getRebinding{}
+
+	if err := c.Bind(&dnsRebinding); err != nil {
+		code, resp := api.ProcessingError(err)
+		return c.JSON(code, resp)
+	}
+
+	log.Debug("api/v1/GetUserDNSRebinding ", identity)
+
+	ips, err := database.Recorder.GetUserDNSRebinding(identity, false)
+	if err != nil {
+		code, resp := api.ProcessingError(err)
+		return c.JSON(code, resp)
+	}
+
+	code := http.StatusOK
+	return c.JSON(code, &api.RespJSON{
+		Code:    code,
+		Message: http.StatusText(code),
+		Data:    map[string][]string{"rebinding_hosts": ips},
+		Success: true,
+	})
 }
 
 // SetUserDNSRebinding set user dns-rebinding
 func SetUserDNSRebinding(c echo.Context) error {
 	identity := c.Param("identity")
-	dnsRebinding := rebinding{}
+	dnsRebinding := setRebinding{}
 
 	if err := c.Bind(&dnsRebinding); err != nil {
 		code, resp := api.ProcessingError(err)
