@@ -5,6 +5,7 @@
     <a href="https://github.com/Buzz2d0/Hyuga">
         <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-1.0.0-yellow"/>
     </a>
+    <img src="https://img.shields.io/badge/Language-Golang-blue" alt="Language" />
     <a href="https://github.com/Buzz2d0/Hyuga/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/github/license/Buzz2d0/Hyuga"/>
     </a>
@@ -26,6 +27,8 @@
 项目地址：https://github.com/Buzz2d0/Hyuga
 
 DEMO 主页：http://hyuga.co/
+
+## 📷 预览
 ![demo.png](./docs/demo.png)
 
 ## 👏 主要框架
@@ -34,15 +37,15 @@ DEMO 主页：http://hyuga.co/
 - [redis](https://github.com/go-redis/redis/)
 - [dns](https://github.com/miekg/dns/)
 
-## ⌛ Others
+## 📝 更新日志
 
-- **Deploy：** 阅读此文档：[deploy.md](./docs/deploy.md) 。
-- **FrontEnd：**  使用了 dnslog.cn UI 样式。
+Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理，你可以阅读[更新日志](./CHANGELOG.md)了解历史更新情况。
 
-## 🙏 Thx
+## ⌛ 未来计划
 
-- http://dnslog.cn/
+ - [ ] 前端重构
+ - [ ] 增加其他好用的小工具
 
-## 更新
+## 🙏 致谢
 
-- 2020.10.27 支持 dns-rebinding (todo: ui 需要重构)
+- [DNSLog](http://dnslog.cn) ：旧版前端样式借鉴
