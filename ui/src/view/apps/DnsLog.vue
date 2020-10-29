@@ -83,6 +83,9 @@
       @ok="handleSetDialogVisibility(false)"
       @cancel="handleSetDialogVisibility(false)"
     >
+      <div v-if="userinfos.identity" class="container-dns-rebinding-host">
+        DNS rebinding host: <a-tag>r.{{ userinfos.identity }}</a-tag>
+      </div>
       <div class="container-settings-rebinding">
         <AInput
           placeholder="请输入 IP"
@@ -396,7 +399,9 @@ export default {
     margin-top: 4px;
   }
 }
-
+.container-dns-rebinding-host {
+  padding-bottom: 10px;
+}
 .container-settings-rebinding-clear {
   margin-top: 32px;
   display: flex;
