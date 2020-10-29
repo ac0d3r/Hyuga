@@ -1,7 +1,7 @@
 <template>
   <div class="container-app-dns-query">
     <div class="container-image">
-      <img src="http://hyuga.co/hyuga.png" alt="image" />
+      <img :src="LogoImg" alt="hyuga" />
     </div>
 
     <hr class="container-divider" />
@@ -11,9 +11,12 @@
         Get SubDomain
       </AButton>
       <div style="min-height: 32px">
-        <div v-if="tokenInformation.token" class="container-token-information">
-          <div>Domain: {{ tokenInformation.identity }}</div>
-          <div>Token: {{ tokenInformation.token }}</div>
+        <div
+          v-if="userinfos.identity !== '' && userinfos.token !== ''"
+          class="container-token-information"
+        >
+          <div>Domain: {{ userinfos.identity }}</div>
+          <div>Token: {{ userinfos.token }}</div>
         </div>
       </div>
       <div class="container-options-input">
@@ -59,15 +62,18 @@
     <div class="container-result-area">
       <div v-if="queryMode === queryModes[0]" class="container-result-dns">
         <ATable
+          :rowKey="data => data.ts"
           :columns="dnsQueryResult.fields"
           :data-source="dnsQueryResult.dataList"
         ></ATable>
       </div>
       <div v-else class="container-result-http">
         <ATable
+          :rowKey="data => data.ts"
           :columns="httpQueryResult.fields"
           :data-source="httpQueryResult.dataList"
-        ></ATable>
+        >
+        </ATable>
       </div>
     </div>
 
@@ -81,20 +87,20 @@
         <AInput
           placeholder="请输入 IP"
           style="margin-right: 4px"
-          @keyup.enter="handleSetTag"
+          @keyup.enter="handleSetRebindingHosts"
           v-model="ipInputField"
         >
         </AInput>
-        <AButton type="primary" @click="handleSetTag">确认</AButton>
+        <AButton type="primary" @click="handleSetRebindingHosts">确认</AButton>
       </div>
       <div
-        v-if="ipDataList.length > 0"
+        v-if="rebindingHosts.length > 0"
         class="container-settings-rebinding-list"
       >
         <ATag
-          v-for="(ipAddress, index) in ipDataList"
+          v-for="(ipAddress, index) in rebindingHosts"
           :key="index"
-          closable="t"
+          :closable="true"
           @close="handleRemoveIp(index)"
           class="ip-item"
         >
@@ -102,29 +108,46 @@
         </ATag>
       </div>
       <!-- <div class="container-settings-rebinding-clear">
-        <AButton type="primary" @click="handleDropIpDataList">
-          Clear Data
-        </AButton>
+        <AButton
+          type="danger"
+          icon="close"
+          shape="circle"
+          size="small"
+          @click="handleDropIpDataList"
+        />
       </div> -->
     </AModal>
   </div>
 </template>
 
 <script>
+import dayjs from "dayjs";
+import { getCookie } from "../../utils/cookie";
+import { apihost } from "../../utils/conf";
+
+const formatTimestamp = ts => {
+  return dayjs(ts / 1000000).format("YYYY-MM-DD HH:mm:ss");
+};
+
 export default {
   name: "DnsLog",
   data: () => ({
-    tokenInformation: {},
+    LogoImg: require("../../assets/logo.png"),
+    userinfos: {},
     dnsQueryResult: {
       fields: [
-        { dataIndex: "name", title: "DNS Query Record" },
+        {
+          dataIndex: "name",
+          title: "DNS Query Record"
+        },
         {
           dataIndex: "remoteAddr",
           title: "Remote Address"
         },
         {
           dataIndex: "ts",
-          title: "Created Time"
+          title: "Created Time",
+          customRender: formatTimestamp
         }
       ],
       dataList: []
@@ -146,7 +169,8 @@ export default {
         },
         {
           dataIndex: "ts",
-          title: "Created Time"
+          title: "Created Time",
+          customRender: formatTimestamp
         }
       ],
       dataList: []
@@ -156,16 +180,37 @@ export default {
     inputData: "",
     showDnsRebindingDialog: false,
     ipInputField: "",
-    ipDataList: []
+    localStoreRebindingHostKey: "dns_rebinding_hosts",
+    rebindingHosts: []
   }),
   methods: {
+    initUserinfos() {
+      const identity = getCookie("identity");
+      const token = getCookie("token");
+      if (identity !== "" && token !== "") {
+        this.userinfos.identity = getCookie("identity");
+        this.userinfos.token = getCookie("token");
+      } else {
+        this.handleGetSubDomain();
+      }
+    },
+    initRebindingHosts() {
+      const localIpDataList = sessionStorage.getItem(
+        this.localStoreRebindingHostKey
+      );
+      if (localIpDataList === null) {
+        this.handleGetUserRebindingHosts();
+      } else {
+        this.rebindingHosts = JSON.parse(localIpDataList);
+      }
+    },
     handleGetSubDomain() {
-      fetch("http://api.hyuga.co/v1/users", { mode: "cors", method: "POST" })
+      fetch(`${apihost}/v1/users`, { mode: "cors", method: "POST" })
         .then(res => res.json())
         .then(res => {
           const { code, data, message } = res;
           if (code === 200) {
-            this.tokenInformation = data;
+            this.userinfos = data;
             document.cookie = `identity=${data.identity}`;
             document.cookie = `token=${data.token}`;
           } else {
@@ -177,7 +222,7 @@ export default {
         });
     },
     handleRefreshRecord() {
-      const url = `http://api.hyuga.co/v1/records?type=${this.queryMode}&token=${this.tokenInformation.token}&filter=${this.inputData}`;
+      const url = `${apihost}/v1/records?type=${this.queryMode}&token=${this.userinfos.token}&filter=${this.inputData}`;
       fetch(url, {
         mode: "cors"
       })
@@ -196,41 +241,92 @@ export default {
           alert(err.message);
         });
     },
+    handleGetUserRebindingHosts() {
+      const identity = this.userinfos.identity.split(".")[0];
+      const url = `${apihost}/v1/users/${identity}/dns-rebinding?token=${this.userinfos.token}`;
+      fetch(url, {
+        mode: "cors"
+      })
+        .then(res => res.json())
+        .then(res => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            this.rebindingHosts =
+              data.rebinding_hosts === null ? [] : data.rebinding_hosts;
+            this.handleSaveRebindingHosts2Local();
+          } else {
+            alert(message);
+          }
+        })
+        .catch(err => {
+          alert(err.message);
+        });
+    },
+    handleSetUserRebindingHosts() {
+      const identity = this.userinfos.identity.split(".")[0];
+      const url = `${apihost}/v1/users/${identity}/dns-rebinding`;
+      const reqOptions = {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: this.userinfos.token,
+          hosts: this.rebindingHosts
+        })
+      };
+      fetch(url, reqOptions)
+        .then(res => res.json())
+        .then(res => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            console.log(data);
+            this.handleSaveRebindingHosts2Local();
+          } else {
+            alert(message);
+          }
+        })
+        .catch(err => {
+          alert(err.message);
+        });
+    },
     handleSetDialogVisibility(visible) {
       this.showDnsRebindingDialog = visible;
     },
-    handleSaveIpDataList() {
+    handleSaveRebindingHosts2Local() {
       sessionStorage.setItem(
-        "dns_rebinding_ip_data_list",
-        JSON.stringify(this.ipDataList)
+        self.localStoreRebindingHostKey,
+        JSON.stringify(this.rebindingHosts)
       );
     },
-    handleDropIpDataList() {
-      this.ipDataList = [];
+    handleDropRebindingHosts() {
+      this.rebindingHosts = [];
+      this.handleSetUserRebindingHosts();
       sessionStorage.removeItem("dns_rebinding_ip_data_list");
       alert("清除成功");
     },
-    handleSetTag() {
+    handleSetRebindingHosts() {
       if (
         RegExp(
           /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
         ).test(this.ipInputField) &&
-        this.ipDataList.indexOf(this.ipInputField) === -1
+        this.rebindingHosts.indexOf(this.ipInputField) === -1
       ) {
-        this.ipDataList.push(this.ipInputField);
+        this.rebindingHosts.push(this.ipInputField);
         this.ipInputField = "";
-        this.handleSaveIpDataList();
+        this.handleSetUserRebindingHosts();
+      } else {
+        console.log(this.ipInputField);
+        alert("输入IP格式错误！");
       }
     },
     handleRemoveIp(index) {
-      this.ipDataList.splice(index, 1);
-      this.handleSaveIpDataList();
+      this.rebindingHosts.splice(index, 1);
+      this.handleSetUserRebindingHosts();
     }
   },
   created() {
-    const localIpDataList = sessionStorage.getItem("dns_rebinding_ip_data_list");
-    this.ipDataList =
-      localIpDataList === null ? [] : JSON.parse(localIpDataList);
+    this.initUserinfos();
+    this.initRebindingHosts();
   }
 };
 </script>

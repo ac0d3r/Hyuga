@@ -2,10 +2,7 @@
   <ALayout id="app-viewer" class="container-page">
     <ALayoutHeader class="container-page-header">
       <div class="container-page-header-logo">
-        <img
-          src="http://hyuga.co/hyuga.png"
-          alt="logo"
-        />
+        <img :src="LogoImg" alt="logo" />
       </div>
       <div class="container-page-header-menu">
         <AMenu mode="horizontal" theme="light">
@@ -31,6 +28,7 @@
     <ALayoutFooter class="container-footer">
       Copyright © 2020 Buzz2d0 All Rights Reserved.
       <ADivider type="vertical" />
+      <img :src="icpImg" alt="icp" />
       苏ICP备2020051327号
     </ALayoutFooter>
   </ALayout>
@@ -39,7 +37,10 @@
 <script>
 export default {
   name: "AppViewer",
-  data: () => ({})
+  data: () => ({
+    LogoImg: require("../assets/logo.png"),
+    icpImg: require("../assets/icp.png")
+  })
 };
 </script>
 
