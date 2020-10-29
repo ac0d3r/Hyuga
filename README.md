@@ -36,6 +36,7 @@ DEMO 主页：http://hyuga.co/
 - [echo](https://github.com/labstack/echo/)
 - [redis](https://github.com/go-redis/redis/)
 - [dns](https://github.com/miekg/dns/)
+- [Vue.js](https://cn.vuejs.org)
 
 ## 📝 更新日志
 
@@ -48,4 +49,4 @@ Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理�
 
 ## 🙏 致谢
 
-- [DNSLog](http://dnslog.cn) ：旧版前端样式借鉴
+- [DNSLog](http://dnslog.cn)：旧版前端样式借鉴
