@@ -108,23 +108,26 @@ func (rc *record) SetUserDNSRebinding(identity, token string, hosts []interface{
 	if !rc.UserExist(identity, token) {
 		return fmt.Errorf("The '%s' does not exist or the token is wrong", identity)
 	}
-	res, err := rc.rdb.Exists(ctx, identity).Result()
+	llen, err := rc.rdb.LLen(ctx, identity).Result()
+	log.Debug("identity DNSRebinding: length ", llen)
 	if err != nil {
 		log.Error(logformat(err.Error()))
 		goto RETURNERR
 	}
 	// remove all dns rebinding
-	if res != 0 {
-		_, err = rc.rdb.LTrim(ctx, identity, int64(-1), int64(0)).Result()
+	for i := 0; i < int(llen); i++ {
+		_, err = rc.rdb.LPop(ctx, identity).Result()
 		if err != nil {
 			log.Error(logformat(err.Error()))
 			goto RETURNERR
 		}
 	}
-	_, err = rc.rdb.LPush(ctx, identity, hosts...).Result()
-	if err != nil {
-		log.Error(logformat(err.Error()))
-		goto RETURNERR
+	if len(hosts) >= 1 {
+		_, err = rc.rdb.LPush(ctx, identity, hosts...).Result()
+		if err != nil {
+			log.Error(logformat(err.Error()))
+			goto RETURNERR
+		}
 	}
 
 RETURNERR:

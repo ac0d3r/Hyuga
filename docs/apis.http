@@ -37,12 +37,7 @@ POST http://{{Host}}:{{Port}}/v1/users
 
 
 #### Get User DNSRebinding
-GET http://{{Host}}:{{Port}}/v1/users/{{identity}}/dns-rebinding
-Content-Type: application/json
-
-{
-  "token": "{{token}}"
-}
+GET http://{{Host}}:{{Port}}/v1/users/{{identity}}/dns-rebinding?token={{token}}
 
 ## Get-User-DNSRebinding return-----------------
 {
