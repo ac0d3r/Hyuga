@@ -44,6 +44,25 @@ server {
 ....
 ```
 
+### 前端
+#### 1. 修改 [config.js](./ui/src/utils/conf.js) API 接口
+
+修改 `api.hyuga.io:5000` 为记录域名，例：
+```JavaScript
+// before: const apihost = "http://api.hyuga.io:5000";
+const apihost = "http://api.hyuga.io;
+```
+#### 2. 构建前端文件
+
+```bash
+$ cd Hyuga/ui
+$ yarn build
+$ rm -r ../frontend
+$ mv dist/ ../frontend
+```
+
+
+
 ## Running with docker
 ```bash
 $ cd Hyuga

@@ -6,6 +6,10 @@ Hyuga遵守 [语义化版本格式](https://semver.org/spec/v2.0.0.html)。
 
 # Unreleased
 
+## 2.0.2 - 2020-11-01
+ - 优化 ui
+ - 完善部署文档
+
 ## 2.0.1 - 2020-10-29
  - 修复 set dns-rebinding API
  - 重构 ui

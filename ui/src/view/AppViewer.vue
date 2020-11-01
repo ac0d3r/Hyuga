@@ -26,9 +26,11 @@
       <router-view />
     </ALayoutContent>
     <ALayoutFooter class="container-footer">
-      Copyright © 2020 Buzz2d0 All Rights Reserved.
+      Copyright © 2020
+      <a href="https://github.com/Buzz2d0/Hyuga">Buzz2d0</a> All Rights
+      Reserved.
       <ADivider type="vertical" />
-      <img :src="icpImg" alt="icp" />
+      <img class="icp-footer-logo" :src="icpImg" alt="icp" />
       苏ICP备2020051327号
     </ALayoutFooter>
   </ALayout>
@@ -62,8 +64,6 @@ export default {
         max-width: 100px;
       }
     }
-    &-menu {
-    }
   }
   .container-content {
     height: 100%;
@@ -73,6 +73,10 @@ export default {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
+  }
+  .icp-footer-logo {
+    height: 12px;
   }
 }
 </style>

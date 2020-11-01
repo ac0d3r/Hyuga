@@ -1,11 +1,5 @@
 <template>
   <div class="container-app-dns-query">
-    <div class="container-image">
-      <img :src="LogoImg" alt="hyuga" />
-    </div>
-
-    <hr class="container-divider" />
-
     <div class="container-user-area">
       <AButton type="primary" @click="handleGetSubDomain">
         Get SubDomain
@@ -135,7 +129,6 @@ const formatTimestamp = ts => {
 export default {
   name: "DnsLog",
   data: () => ({
-    LogoImg: require("../../assets/logo.png"),
     userinfos: {},
     dnsQueryResult: {
       fields: [
@@ -351,6 +344,7 @@ export default {
     margin: 16px 0;
   }
   .container-user-area {
+    margin-top: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;

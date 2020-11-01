@@ -50,3 +50,4 @@ Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理�
 ## 🙏 致谢
 
 - [DNSLog](http://dnslog.cn)：旧版前端样式借鉴
+- [PockyRayzz](https://github.com/PockyRayzz)：使用 Vue 重构前端
