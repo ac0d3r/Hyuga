@@ -31,6 +31,8 @@ DEMO 主页：http://hyuga.co/
 ## 📷 预览
 ![demo.png](./docs/demo.png)
 
+部署参见 [DEPLOY.md](./DEPLOY.md)
+
 ## 👏 主要框架
 
 - [echo](https://github.com/labstack/echo/)
