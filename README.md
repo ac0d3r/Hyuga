@@ -3,7 +3,7 @@
 </div>
 <p align="center">
     <a href="https://github.com/Buzz2d0/Hyuga">
-        <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-1.0.0-yellow"/>
+        <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-2.0.3-yellow"/>
     </a>
     <img src="https://img.shields.io/badge/Language-Golang-blue" alt="Language" />
     <a href="https://github.com/Buzz2d0/Hyuga/blob/master/LICENSE">
@@ -17,16 +17,18 @@
 
 ---
 ## 🎉 项目简介
-> `Hyuga` 的名字来自《火影忍者》中的日向一族的名称。
+> `Hyuga` 名字来自《火影忍者》中的日向一族。
 
-
-**通知📣!!!**
-> 用 golang 重写了此项目，但保留之前的 [Python](https://github.com/Buzz2d0/Hyuga/tree/python) 版本。
-> 参考了 [DNSLog.cn](http://dnslog.cn/) 平台, 丢弃了一些冗余的功能，保留查询 API。
+DEMO 主页：http://hyuga.co/
 
 项目地址：https://github.com/Buzz2d0/Hyuga
 
-DEMO 主页：http://hyuga.co/
+### 🚀查询 API
+- `GET` - `http://api.<hyuga.io>/v1/records?type=<dns|http>&token=<token>&filter=<filter>`
+    - `type`: 查询类型 `dns|http`
+    - `token`: 域名 token
+    - `filter`: 过滤字符
+
 
 ## 📷 预览
 ![demo.png](./docs/demo.png)
@@ -51,3 +53,7 @@ Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理�
 
 - [DNSLog](http://dnslog.cn)：旧版前端样式借鉴
 - [PockyRayzz](https://github.com/PockyRayzz)：使用 Vue 重构前端
+
+## 👀 其他
+- 部署参见 [DEPLOY.md](./DEPLOY.md)
+- 保留之前的 [Python](https://github.com/Buzz2d0/Hyuga/tree/python) 版本
