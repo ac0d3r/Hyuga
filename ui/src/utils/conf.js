@@ -1,3 +1,3 @@
-const apihost = "http://api.hyuga.io:5000";
+const apihost = "http://api.hyuga.io";
 
 export { apihost };

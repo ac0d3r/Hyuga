@@ -14,23 +14,22 @@
 
 ## 🐳 使用 Docker 部署
 
-### 修改环境变量 & 配置文件
+### 修改配置文件
 
-1. 环境变量写入项目根目录下的 `.env` 文件：
+1. 修改 `config.yml` 文件：
 
-```bash
-APP_ENV=production
-
-REDIS_SERVER=redis
-REDIS_PORT=6379
-
-DOMAIN=<hyuga.io> # 修改记录域名
-NS1_DOMAIN=<ns1.app.io> # 修改NS1域名
-NS2_DOMAIN=<ns2.app.io> # 修改NS2域名
-SERVER_IP=<1.1.1.1> # 修改公网IP
+```yml
+app:
+  env: production # development/production
+  recordExpirationDays: 7
+redis: redis:6379
+domain:
+  main: hyuga.io  # 修改记录域名
+  ns: [ns1.app.io, ns2.app.io]  # 修改NS域名
+  ip: 127.0.0.1 # 修改公网IP
 ```
 
-2. 修改 [nginx-hyuga.conf](./deploy/nginx/nginx-hyuga.conf) 中的 `server_name`
+1. 替换 [nginx.conf](./ui/nginx.conf) 中的 `server_name`
 ```nginx
 server {
     listen 80;
@@ -45,7 +44,7 @@ server {
 ```
 
 ### 前端
-1. 修改 [config.js](./ui/src/utils/conf.js) API 接口
+修改 [conf.js](./ui/src/utils/conf.js) API 接口
 
 修改 `api.<hyuga.io:5000>` 为记录域名，例：
 ```JavaScript
@@ -53,19 +52,9 @@ const apihost = "http://api.hyuga.io;
 ...
 ```
 
-2. 构建前端文件
-
-```bash
-$ cd Hyuga/ui
-$ yarn build
-$ rm -r ../frontend
-$ mv dist/ ../frontend
-```
-
-### 编译 & 运行
+### 运行
 ```bash
 $ cd Hyuga
-$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" hyuga.go # 编译
 $ docker-compose build
 $ docker-compose up -d
 ```

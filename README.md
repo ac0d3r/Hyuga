@@ -3,7 +3,7 @@
 </div>
 <p align="center">
     <a href="https://github.com/Buzz2d0/Hyuga">
-        <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-2.0.3-yellow"/>
+        <img alt="Hyuga" src="https://img.shields.io/badge/Hyuga-2.1.0-yellow"/>
     </a>
     <img src="https://img.shields.io/badge/Language-Golang-blue" alt="Language" />
     <a href="https://github.com/Buzz2d0/Hyuga/blob/master/LICENSE">
@@ -42,7 +42,7 @@ DEMO 主页：http://hyuga.co/
 
 ## 📝 更新日志
 
-Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理，你可以阅读[更新日志](./CHANGELOG.md)了解历史更新情况。
+[CHANGELOG.md](./CHANGELOG.md)
 
 ## ⌛ 未来计划
 
@@ -57,3 +57,7 @@ Hyuga使用[SemVer](https://semver.org/)语言化版本格式进行版本管理�
 ## 👀 其他
 - 部署参见 [DEPLOY.md](./DEPLOY.md)
 - 保留之前的 [Python](https://github.com/Buzz2d0/Hyuga/tree/python) 版本
+
+## 💰
+
+<img src="./docs/xiexieshifu.JPG" width="280" alt="谢谢师傅"/>
