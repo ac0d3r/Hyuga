@@ -57,7 +57,3 @@ DEMO 主页：http://hyuga.co/
 ## 👀 其他
 - 部署参见 [DEPLOY.md](./DEPLOY.md)
 - 保留之前的 [Python](https://github.com/Buzz2d0/Hyuga/tree/python) 版本
-
-## 💰
-
-<img src="./docs/xiexieshifu.JPG" width="280" alt="谢谢师傅"/>
