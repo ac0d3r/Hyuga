@@ -19,7 +19,7 @@
 ## 🎉 项目简介
 > `Hyuga` 名字来自《火影忍者》中的日向一族。
 
-DEMO 主页：http://hyuga.co/
+DEMO 主页：~~http://hyuga.co/~~
 
 项目地址：https://github.com/Buzz2d0/Hyuga
 
