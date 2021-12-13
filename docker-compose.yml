@@ -7,22 +7,13 @@ services:
     volumes:
       - "./deploy/redis:/data"
 
-  ui:
-    build:
-      context: ui/
-      dockerfile: Dockerfile
-    container_name: hyuga_ui
-    restart: always
-    ports:
-      - "80:80"
-
-  api:
+  hyuga:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: hyuga_api
+    container_name: hyuga
     ports:
-      - 127.0.0.1:5000:5000
+      - 80:8000
       - "53:53/udp"
     depends_on:
       - "redis"
