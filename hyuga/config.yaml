@@ -1,0 +1,7 @@
+debug: true
+record_expiration_hours: 6
+redis: redis:6379
+domain:
+  main: hyuga.io
+  ns: [ns1.app.io, ns2.app.io]
+  ip: 127.0.0.1
