@@ -1,16 +1,13 @@
 .vscode/
 
-.git
+.git/
 .gitignore
 */.gitkeep
 
-.test
 .DS_Store
 dump.rdb
 
 node_modules/
 dist/
 docs/
-LICENSE
-DEPLOY.md
-README.md
+deploy/
