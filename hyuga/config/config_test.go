@@ -11,4 +11,6 @@ func TestSetFromFile(t *testing.T) {
 	}
 
 	t.Logf("%+v \n", C)
+
+	t.Log(DefaultIP)
 }

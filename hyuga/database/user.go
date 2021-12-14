@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -14,19 +13,21 @@ var (
 )
 
 type User struct {
-	ID      string   `json:"id"`
-	Token   string   `json:"token"`
-	IPs     []string `json:"ip"`
-	Created int64    `json:"created"`
+	ID        string   `json:"id"`
+	Token     string   `json:"token"`
+	IPs       []string `json:"ip"`
+	Created   int64    `json:"created"`
+	RDnsTimes int64    `json:"rdnstimes"` // rebinding dns query of times
 }
 
 // TODO use reflect
 func (u *User) values() (map[string]string, error) {
 	values := map[string]string{
-		"id":      u.ID,
-		"token":   u.Token,
-		"created": fmt.Sprint(u.Created),
-		"ip":      "[]",
+		"id":        u.ID,
+		"token":     u.Token,
+		"created":   strconv.FormatInt(u.Created, 10),
+		"ip":        "[]",
+		"rdnstimes": "0",
 	}
 	if len(u.IPs) > 0 {
 		ips, err := json.Marshal(u.IPs)
@@ -165,4 +166,16 @@ func GetUserDNSRebinding(userID string) ([]string, error) {
 		return nil, err
 	}
 	return ip, err
+}
+
+func SetUserDnsRebindingTimes(userID string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	t, err := defaultClient.HGet(ctx, genUserKey(userID), "rdnstimes").Int64()
+	if err != nil {
+		return 0, err
+	}
+
+	return t, defaultClient.HSet(ctx, genUserKey(userID), "rdnstimes", strconv.FormatInt(t+1, 10)).Err()
 }

@@ -24,7 +24,7 @@ func (d DnsRecord) Values() map[string]string {
 	return map[string]string{
 		"name":        d.Name,
 		"remote_addr": d.RemoteAddr,
-		"created":     fmt.Sprint(d.Created),
+		"created":     strconv.FormatInt(d.Created, 10),
 	}
 }
 
@@ -46,7 +46,7 @@ func (h HttpRecord) Values() map[string]string {
 		"method":      h.Method,
 		"remote_addr": h.RemoteAddr,
 		"raw":         h.Raw,
-		"created":     fmt.Sprint(h.Created),
+		"created":     strconv.FormatInt(h.Created, 10),
 	}
 }
 

@@ -2,6 +2,7 @@ package config
 
 import (
 	"io"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -11,7 +12,8 @@ import (
 )
 
 var (
-	C = Config{}
+	C         = Config{}
+	DefaultIP net.IP
 )
 
 type Config struct {
@@ -47,7 +49,7 @@ func SetFromYaml(c string) error {
 	for i := range C.Domain.NS {
 		C.Domain.NS[i] = dns.Fqdn(C.Domain.NS[i])
 	}
-
+	DefaultIP = net.ParseIP(C.Domain.IP)
 	C.RecordExpiration = time.Duration(time.Duration(C.RecordExpirationHour) * time.Hour)
 	return nil
 }

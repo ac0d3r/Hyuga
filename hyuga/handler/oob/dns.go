@@ -1,9 +1,9 @@
 package oob
 
 import (
+	"fmt"
 	"hyuga/config"
 	"hyuga/database"
-	"hyuga/handler/rand"
 	"log"
 	"net"
 	"strings"
@@ -58,7 +58,11 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	question := r.Question[0]
 	name := strings.Trim(question.Name, ".")
 	identity := getIdentity(name, config.C.Domain.Main)
-	value := ""
+
+	var (
+		recordtimes    int64
+		isDnsRebinding bool
+	)
 	if identity != "" && database.UserExist(identity) {
 		rhost, _, _ := net.SplitHostPort(w.RemoteAddr().String())
 		record := database.DnsRecord{
@@ -69,8 +73,15 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		if err := database.SetUserRecord(identity, record, config.C.RecordExpiration); err != nil {
 			log.Printf("SetUserRecord %s %#v error: %s\n", identity, record, err)
 		}
-	} else {
-		value = config.C.Domain.IP
+
+		if name == fmt.Sprintf("r.%s.%s", identity, config.C.Domain.Main) {
+			isDnsRebinding = true
+			t, err := database.SetUserDnsRebindingTimes(identity)
+			if err != nil {
+				log.Printf("GetUserDnsTimes %s error: %s\n", identity, err)
+			}
+			recordtimes = t
+		}
 	}
 
 	rrs := make([]dns.RR, 0)
@@ -85,10 +96,7 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		fallthrough
 	case dns.TypeA:
 		rrHeader.Ttl = LogTTL
-		if value == "" {
-			value = getDnsValue(identity)
-		}
-		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: net.ParseIP(value)})
+		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: getDnsValue(!isDnsRebinding, identity, recordtimes)})
 	case dns.TypeNS:
 		rrHeader.Ttl = NsTTL
 		for i := range config.C.Domain.NS {
@@ -105,16 +113,22 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 }
 
-func getDnsValue(identity string) string {
+func getDnsValue(defaults bool, identity string, recordtimes int64) net.IP {
+	if defaults {
+		return config.DefaultIP
+	}
+
 	ips, err := database.GetUserDNSRebinding(identity)
 	if err != nil {
 		log.Printf("GetUserDNSRebinding error: %s \n", err)
-		return config.C.Domain.IP
+		return config.DefaultIP
 	}
 
-	if len(ips) == 0 {
-		return config.C.Domain.IP
+	if len(ips) <= 0 {
+		return config.DefaultIP
 	}
-	ips = append(ips, config.C.Domain.IP)
-	return ips[rand.RandomInt(0, len(ips)-1)]
+
+	ipp := []string{config.C.Domain.IP}
+	ipp = append(ipp, ips...)
+	return net.ParseIP(ipp[recordtimes%int64(len(ipp))])
 }
