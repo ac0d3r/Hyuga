@@ -39,14 +39,14 @@ func HttpLog(c *gin.Context) {
 }
 
 func getRealIP(r *http.Request) string {
-	ip := r.Header.Get("X-Real-Ip")
+	ip := r.Header.Get("X-Real-IP")
 	if ip == "" {
 		ip = r.Header.Get("X-Forwarded-For")
 	}
 	if ip == "" {
 		ip = r.RemoteAddr
 	}
-	return ip
+	return strings.Split(ip, ":")[0]
 }
 
 func getIdentity(domain, sub string) string {
