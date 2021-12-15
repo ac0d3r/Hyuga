@@ -14,12 +14,12 @@
     </a>
  </p>
 
-⚡️Hyuga 是一个用来检测带外(Out-of-Band)流量(DNS查询和HTTP请求)的监控工具。
+⚡️Hyuga 是一个用来检测带外(Out-of-Band)流量的监控工具。
 
 ---
 ## 🎉 项目简介
 
-DEMO 主页：~~http://hyuga.co/~~
+DEMO 主页：http://hyuga.icu
 
 项目地址：https://github.com/Buzz2d0/Hyuga
 
@@ -27,14 +27,28 @@ DEMO 主页：~~http://hyuga.co/~~
 ![demo.png](./docs/demo.png)
 
 
-### 🚀查询 API
-- `GET` - `http://<hyuga.io>/api/record/list?type=<dns|http>&token=<token>&filter=<filter>`
-    - `type`: 查询类型 `dns|http`
-    - `token`: 域名 token
-    - `filter`: 过滤字符
-
-
+## 🌀 oob
+- dns
+    - 记录dns查询记录(query name, remote address)
+    - 支持 dns-rebinding [#🔗](https://github.com/Buzz2d0/Hyuga#-DNS%20Rebinding)
+- http 
+    - 记录 http 请求记录(url, method, remote address, raw request)
 
 ## 👀 其他
 - 部署参见 [DEPLOY.md](./DEPLOY.md)
 - 📝 更新日志[CHANGELOG.md](./CHANGELOG.md)
+
+### 🚀 查询 API
+- `GET` - http://`<hyuga.io>`/api/record/list?type=`<dns|http>`&token=`<token>`&filter=`<filter>`
+    - `type`: 查询类型 `dns|http`
+    - `token`: 域名 token
+    - `filter`: 过滤字符
+
+### 🪓 DNS Rebinding
+查询 `r.xxx.hyuga.io` 时根据访问次数依次返回所设置的dns（无缓存时）。
+
+**e.g.** ip 为 `1.1.1.1`；dns 设置如下：
+
+<img src="https://user-images.githubusercontent.com/26270009/146206555-49450822-44b7-46f4-8942-b6bf831d76f8.png" width="420"/>
+
+查询 `r.8q56.hyuga.io` 根据访问次数计算依次返回：`1.1.1.1` -> `127.0.0.1` -> `1.1.1.1`...
