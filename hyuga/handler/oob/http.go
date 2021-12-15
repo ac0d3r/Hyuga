@@ -19,11 +19,10 @@ func HttpLog(c *gin.Context) {
 
 	if identity != "" && database.UserExist(identity) {
 		req, _ := httputil.DumpRequest(c.Request, true)
-		rip, _, _ := net.SplitHostPort(getRealIP(c.Request))
 		record := database.HttpRecord{
 			URL:        c.Request.URL.String(),
 			Method:     c.Request.Method,
-			RemoteAddr: rip,
+			RemoteAddr: getRealIP(c.Request),
 			Created:    time.Now().Unix(),
 			Raw:        string(req),
 		}

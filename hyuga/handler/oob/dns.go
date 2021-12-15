@@ -64,10 +64,9 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		isDnsRebinding bool
 	)
 	if identity != "" && database.UserExist(identity) {
-		rhost, _, _ := net.SplitHostPort(w.RemoteAddr().String())
 		record := database.DnsRecord{
 			Name:       name,
-			RemoteAddr: rhost,
+			RemoteAddr: GetRequestHost(w.RemoteAddr().String()),
 			Created:    time.Now().Unix(),
 		}
 		if err := database.SetUserRecord(identity, record, config.C.RecordExpiration); err != nil {
