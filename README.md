@@ -30,7 +30,7 @@ DEMO 主页：http://hyuga.icu
 ## 🌀 oob
 - dns
     - 记录dns查询记录(query name, remote address)
-    - 支持 dns-rebinding [#🔗](https://github.com/Buzz2d0/Hyuga#-DNS%20Rebinding)
+    - 支持 dns-rebinding [#🔗](https://github.com/Buzz2d0/Hyuga#-dns-rebinding)
 - http 
     - 记录 http 请求记录(url, method, remote address, raw request)
 
