@@ -36,32 +36,25 @@
             cancel-text="No"
             @confirm="handleCreateUser"
           >
-            <a-tooltip title="reset domain name">
-              <a-icon size="small" type="redo" />
-            </a-tooltip>
+            <a-button size="small" type="primary" shape="circle" icon="redo" />
           </a-popconfirm>
-          <a-tooltip title="set dns rebinding">
-            <a-icon
-              size="small"
-              type="setting"
-              @click="
-                () => {
-                  Shows.DnsRebindSetting = true;
-                  User.OldIPs = User.IPs;
-                }
-              "
-            />
-          </a-tooltip>
-
+          <a-icon
+            size="small"
+            type="setting"
+            @click="
+              () => {
+                Shows.DnsRebindSetting = true;
+                User.OldIPs = User.IPs;
+              }
+            "
+          />
           <a-popconfirm
             title="Wipe all records data?"
             ok-text="Yes"
             cancel-text="No"
             @confirm="handleWipeData"
           >
-            <a-tooltip title="wipe data">
-              <a-icon size="small" type="close" />
-            </a-tooltip>
+            <a-button size="small" type="danger" shape="circle" icon="close" />
           </a-popconfirm>
         </template>
       </a-card>
@@ -70,6 +63,7 @@
         <a-select
           v-model="CurrentQueryMode"
           style="width: 120px; margin-right: 4px"
+          @change="handleSelectQueryModeChange"
         >
           <a-select-option
             v-for="(mode, index) in QueryModes"
@@ -130,7 +124,16 @@
       "
     >
       <div v-if="User.ID">
-        Host: <a-tag>r.{{ User.ID }}</a-tag>
+        Host: <a-tag>r.{{ User.ID }}</a-tag
+        ><a-icon
+          v-if="User.ID !== ''"
+          type="copy"
+          @click="
+            () => {
+              copy('r.' + User.ID);
+            }
+          "
+        />
       </div>
       <br />
       <div>
@@ -156,7 +159,7 @@
           :style="{ width: '78px' }"
           :value="Inputs.DnsRebinding"
           @change="handleTagInputChange"
-          @blur="handleTagInputConfirm"
+          @blur="handleTagInputBlur"
           @keyup.enter="handleTagInputConfirm"
         />
         <a-tag
@@ -182,7 +185,7 @@ import {
   GetLogRecords,
   WipeRecodsData,
 } from "../utils/apis";
-import { getCookie, equar } from "../utils/cookie";
+import { equar, validateIPaddress } from "../utils/util";
 
 const formatTimestamp = (created) => {
   const parsed = parseInt(created, 10);
@@ -267,13 +270,22 @@ export default {
     handleTagInputChange(e) {
       this.Inputs.DnsRebinding = e.target.value;
     },
+    handleTagInputBlur() {
+      this.Shows.AddDns = false;
+      this.Inputs.DnsRebinding = "";
+    },
     handleTagInputConfirm() {
-      const dns = this.Inputs.DnsRebinding;
-      let ips = this.User.IPs;
-      if (dns && ips.indexOf(dns) === -1) {
-        ips = [...ips, dns];
+      if (!validateIPaddress(this.Inputs.DnsRebinding)) {
+        this.$message.error("You have entered an invalid IP address!");
+      } else {
+        const dns = this.Inputs.DnsRebinding;
+        let ips = this.User.IPs;
+        if (dns && ips.indexOf(dns) === -1) {
+          ips = [...ips, dns];
+        }
+        this.User.IPs = ips;
       }
-      this.User.IPs = ips;
+
       this.Shows.AddDns = false;
       this.Inputs.DnsRebinding = "";
     },
@@ -292,6 +304,9 @@ export default {
     },
     handleWipeData() {
       this.wipeRecodsData();
+    },
+    handleSelectQueryModeChange() {
+      this.getLogRecords();
     },
     formatHttpRaw(raw) {
       return raw.length > 80 ? `${raw.substring(0, 80)}...` : raw;
@@ -313,8 +328,8 @@ export default {
       const succ = (data) => {
         this.User.ID = data.id;
         this.User.Token = data.token;
-        document.cookie = `identity=${data.id}`;
-        document.cookie = `token=${data.token}`;
+        this.$cookies.set("identity", data.id, -1, "/");
+        this.$cookies.set("token", data.token, -1, "/");
         this.$message.success("user created successfully");
         this.getUserDnsRebindingHosts();
       };
@@ -323,8 +338,8 @@ export default {
     deleteUser(needCreate) {
       const succ = () => {
         this.User = { ID: "", Token: "", IPs: [], OldIPs: [] };
-        document.cookie = "identity=";
-        document.cookie = "token=";
+        this.$cookies.remove("identity");
+        this.$cookies.remove("token");
         this.$message.success("user deleted successfully");
         needCreate ? this.createUser() : {};
       };
@@ -338,8 +353,8 @@ export default {
         this.fail(msg);
         if (code === 200) {
           this.User = { ID: "", Token: "", IPs: [], OldIPs: [] };
-          document.cookie = "identity=";
-          document.cookie = "token=";
+          this.$cookies.remove("identity");
+          this.$cookies.remove("token");
         }
       };
       GetUserDnsRebindingHosts(succ, fail);
@@ -376,10 +391,12 @@ export default {
       WipeRecodsData(succ, this.fail);
     },
     initUser() {
-      this.User.ID = getCookie("identity");
-      this.User.Token = getCookie("token");
-      if (this.User.ID !== "" && this.User.Token !== "")
+      this.User.ID = this.$cookies.get("identity");
+      this.User.Token = this.$cookies.get("token");
+      if (this.User.ID !== "" && this.User.Token !== "") {
         this.getUserDnsRebindingHosts();
+        this.getLogRecords();
+      }
     },
   },
   created() {

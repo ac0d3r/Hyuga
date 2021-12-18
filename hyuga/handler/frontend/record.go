@@ -2,6 +2,7 @@ package frontend
 
 import (
 	"hyuga/database"
+	"hyuga/handler/base"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,17 +15,17 @@ func GetRecords(c *gin.Context) {
 	case "http":
 		record = database.HttpRecord{}
 	default:
-		ReturnError(c, 101)
+		base.ReturnError(c, 101)
 		return
 	}
 
-	list, err := database.GetUserRecordsByUserID(record, UserID(c), c.Query("filter"))
+	list, err := database.GetUserRecordsByUserID(record, base.GetUserID(c), c.Query("filter"))
 	if err != nil {
-		ReturnError(c, 102, err)
+		base.ReturnError(c, 102, err)
 		return
 	}
 
-	ReturnJSON(c, list)
+	base.ReturnJSON(c, list)
 }
 
 func CleanRecords(c *gin.Context) {
@@ -33,10 +34,10 @@ func CleanRecords(c *gin.Context) {
 		database.HttpRecord{},
 	}
 	for _, r := range records {
-		if err := database.DeleteRecordsByUserID(r, UserID(c)); err != nil {
-			ReturnError(c, 102, err)
+		if err := database.DeleteRecordsByUserID(r, base.GetUserID(c)); err != nil {
+			base.ReturnError(c, 102, err)
 			return
 		}
 	}
-	ReturnJSON(c, nil)
+	base.ReturnJSON(c, nil)
 }

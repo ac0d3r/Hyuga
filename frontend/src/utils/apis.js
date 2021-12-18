@@ -1,8 +1,10 @@
 import { apihost } from "./conf";
-import { getCookie } from "./cookie";
+import VueCookies from 'vue-cookies'
+
 
 function SetTokenHeader(obj) {
-    obj.Authorization = "Bearer " + getCookie("token")
+    const token = VueCookies.get("token");
+    obj.Authorization = "Bearer " + token
     return obj
 }
 

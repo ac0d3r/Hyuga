@@ -15,7 +15,7 @@ type Record interface {
 }
 
 type DnsRecord struct {
-	Name       string `json:"name" `
+	Name       string `json:"name"`
 	RemoteAddr string `json:"remote_addr"`
 	Created    int64  `json:"created"`
 }

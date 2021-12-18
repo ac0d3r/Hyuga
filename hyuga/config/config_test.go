@@ -9,8 +9,11 @@ func TestSetFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Logf("%+v \n", C)
-
+	t.Log(DebugMode)
+	t.Log(RedisDsn)
+	t.Log(RecordExpiration)
+	t.Log(MainDomain)
+	t.Log(DefaultIP)
+	t.Log(NSDomain)
 	t.Log(DefaultIP)
 }

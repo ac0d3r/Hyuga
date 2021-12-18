@@ -3,7 +3,8 @@ package frontend
 import (
 	"hyuga/config"
 	"hyuga/database"
-	"hyuga/handler/oob"
+	"hyuga/handler/base"
+	"hyuga/oob"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,14 +21,14 @@ func MiddlewareUserToken() gin.HandlerFunc {
 		}
 
 		if token == "" {
-			ReturnUnauthorized(c, 200)
+			base.ReturnUnauthorized(c, 200)
 			c.Abort()
 			return
 		}
 
 		user, err := database.GetUserByToken(token)
 		if err != nil {
-			ReturnUnauthorized(c, 200)
+			base.ReturnUnauthorized(c, 200)
 			c.Abort()
 			return
 		}
@@ -40,8 +41,8 @@ func MiddlewareUserToken() gin.HandlerFunc {
 
 func MiddlewareForwardLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		host := oob.GetRequestHost(c.Request.Host)
-		if host != config.C.Domain.Main {
+		host := strings.Split(c.Request.Host, ":")[0]
+		if host != config.MainDomain {
 			oob.HttpLog(c)
 			c.Abort()
 		}

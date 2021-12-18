@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	LogTTL     = 0
-	NsTTL      = 10 * 60
-	DefaultTTL = 5 * 60
+	ZeroTTL    = 0
+	DefaultTTL = 60
+	NsTTL      = 24 * 60 * 60
 )
 
 type DnsServer struct {
@@ -57,7 +57,7 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 	question := r.Question[0]
 	name := strings.Trim(question.Name, ".")
-	identity := getIdentity(name, config.C.Domain.Main)
+	identity := getIdentity(name, config.MainDomain)
 
 	var (
 		recordtimes    int64
@@ -66,20 +66,20 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	if identity != "" && database.UserExist(identity) {
 		record := database.DnsRecord{
 			Name:       name,
-			RemoteAddr: GetRequestHost(w.RemoteAddr().String()),
+			RemoteAddr: strings.Split(w.RemoteAddr().String(), ":")[0],
 			Created:    time.Now().Unix(),
 		}
-		if err := database.SetUserRecord(identity, record, config.C.RecordExpiration); err != nil {
+		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
 			log.Printf("SetUserRecord %s %#v error: %s\n", identity, record, err)
-		}
-
-		if name == fmt.Sprintf("r.%s.%s", identity, config.C.Domain.Main) {
-			isDnsRebinding = true
-			t, err := database.SetUserDnsRebindingTimes(identity)
-			if err != nil {
-				log.Printf("GetUserDnsTimes %s error: %s\n", identity, err)
+		} else {
+			if name == fmt.Sprintf("r.%s.%s", identity, config.MainDomain) {
+				isDnsRebinding = true
+				t, err := database.SetUserDnsRebindingTimes(identity)
+				if err != nil {
+					log.Printf("GetUserDnsTimes %s error: %s\n", identity, err)
+				}
+				recordtimes = t
 			}
-			recordtimes = t
 		}
 	}
 
@@ -94,12 +94,14 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	case dns.TypeANY:
 		fallthrough
 	case dns.TypeA:
-		rrHeader.Ttl = LogTTL
+		if isDnsRebinding {
+			rrHeader.Ttl = ZeroTTL
+		}
 		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: getDnsValue(!isDnsRebinding, identity, recordtimes)})
 	case dns.TypeNS:
 		rrHeader.Ttl = NsTTL
-		for i := range config.C.Domain.NS {
-			rrs = append(rrs, &dns.NS{Hdr: rrHeader, Ns: config.C.Domain.NS[i]})
+		for i := range config.NSDomain {
+			rrs = append(rrs, &dns.NS{Hdr: rrHeader, Ns: config.NSDomain[i]})
 		}
 	default:
 		dns.HandleFailed(w, r)
@@ -127,7 +129,7 @@ func getDnsValue(defaults bool, identity string, recordtimes int64) net.IP {
 		return config.DefaultIP
 	}
 
-	ipp := []string{config.C.Domain.IP}
+	ipp := []string{config.DefaultIP.String()}
 	ipp = append(ipp, ips...)
 	return net.ParseIP(ipp[recordtimes%int64(len(ipp))])
 }

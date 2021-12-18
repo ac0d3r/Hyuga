@@ -1,4 +1,4 @@
-package frontend
+package base
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ func ReturnError(c *gin.Context, code int, err ...error) {
 	if !has {
 		msg = "unknown error code"
 	}
-	if len(err) > 0 && config.C.DebugMode {
+	if len(err) > 0 && config.DebugMode {
 		msg = msg + fmt.Sprintf(" [Error %v]", err[0])
 	}
 
@@ -45,7 +45,7 @@ func ReturnUnauthorized(c *gin.Context, code int, err ...error) {
 	if !has {
 		msg = "unknown error code"
 	}
-	if len(err) > 0 && config.C.DebugMode {
+	if len(err) > 0 && config.DebugMode {
 		msg = msg + fmt.Sprintf(" [Error %v]", err[0])
 	}
 
@@ -62,6 +62,6 @@ var errorMap = map[int]string{
 	200: "unauthorized access",
 }
 
-func UserID(c *gin.Context) string {
+func GetUserID(c *gin.Context) string {
 	return c.GetString("uid")
 }

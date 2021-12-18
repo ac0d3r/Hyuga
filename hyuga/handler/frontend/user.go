@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"hyuga/config"
 	"hyuga/database"
-	"hyuga/handler/rand"
+	"hyuga/handler/base"
+	"hyuga/handler/util"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,22 +15,22 @@ import (
 func CreateUser(c *gin.Context) {
 	user := &database.User{
 		ID:      genID(),
-		Token:   ksuid.New().String() + rand.RandomString(rand.RandomInt(5, 20)),
+		Token:   ksuid.New().String() + util.RandomString(util.RandomInt(5, 20)),
 		Created: time.Now().Unix(),
 	}
 	if err := database.CreateUser(user); err != nil {
-		ReturnError(c, 102, err)
+		base.ReturnError(c, 102, err)
 		return
 	}
-	ReturnJSON(c, map[string]string{
-		"id":    fmt.Sprintf("%s.%s", user.ID, config.C.Domain.Main),
+	base.ReturnJSON(c, map[string]string{
+		"id":    fmt.Sprintf("%s.%s", user.ID, config.MainDomain),
 		"token": user.Token,
 	})
 }
 
 func DeleteUser(c *gin.Context) {
-	if err := database.DeleteUserByUserID(UserID(c)); err != nil {
-		ReturnError(c, 102, err)
+	if err := database.DeleteUserByUserID(base.GetUserID(c)); err != nil {
+		base.ReturnError(c, 102, err)
 		return
 	}
 	records := []database.Record{
@@ -37,21 +38,21 @@ func DeleteUser(c *gin.Context) {
 		database.HttpRecord{},
 	}
 	for _, r := range records {
-		if err := database.DeleteRecordsByUserID(r, UserID(c)); err != nil {
-			ReturnError(c, 102, err)
+		if err := database.DeleteRecordsByUserID(r, base.GetUserID(c)); err != nil {
+			base.ReturnError(c, 102, err)
 			return
 		}
 	}
-	ReturnJSON(c, nil)
+	base.ReturnJSON(c, nil)
 }
 
 func GetUserDnsRebinding(c *gin.Context) {
-	ips, err := database.GetUserDNSRebinding(UserID(c))
+	ips, err := database.GetUserDNSRebinding(base.GetUserID(c))
 	if err != nil {
-		ReturnError(c, 102, err)
+		base.ReturnError(c, 102, err)
 		return
 	}
-	ReturnJSON(c, ips)
+	base.ReturnJSON(c, ips)
 }
 
 func UpdateUserDnsRebinding(c *gin.Context) {
@@ -59,15 +60,15 @@ func UpdateUserDnsRebinding(c *gin.Context) {
 		IP []string `json:"ip,omitempty" form:"ip" binding:"required"`
 	}{}
 	if err := c.ShouldBind(param); err != nil {
-		ReturnError(c, 101, err)
+		base.ReturnError(c, 101, err)
 		return
 	}
-	if err := database.SetUserDNSRebinding(UserID(c), param.IP); err != nil {
-		ReturnError(c, 102, err)
+	if err := database.SetUserDNSRebinding(base.GetUserID(c), param.IP); err != nil {
+		base.ReturnError(c, 102, err)
 		return
 	}
 
-	ReturnJSON(c, nil)
+	base.ReturnJSON(c, nil)
 }
 
 // genID to get a short ID
@@ -78,7 +79,7 @@ func genID() string {
 	)
 
 	for {
-		id := rand.RandomID(length)
+		id := util.RandomID(length)
 		if !database.UserExist(id) {
 			return id
 		}

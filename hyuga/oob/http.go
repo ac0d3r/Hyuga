@@ -4,7 +4,6 @@ import (
 	"hyuga/config"
 	"hyuga/database"
 	"log"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -14,8 +13,8 @@ import (
 )
 
 func HttpLog(c *gin.Context) {
-	host := GetRequestHost(c.Request.Host)
-	identity := getIdentity(host, config.C.Domain.Main)
+	host := strings.Split(c.Request.Host, ":")[0]
+	identity := getIdentity(host, config.MainDomain)
 
 	if identity != "" && database.UserExist(identity) {
 		req, _ := httputil.DumpRequest(c.Request, true)
@@ -26,7 +25,7 @@ func HttpLog(c *gin.Context) {
 			Created:    time.Now().Unix(),
 			Raw:        string(req),
 		}
-		if err := database.SetUserRecord(identity, record, config.C.RecordExpiration); err != nil {
+		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
 			log.Printf("SetUserRecord %s %#v error: %s", identity, record, err)
 		}
 
@@ -56,14 +55,4 @@ func getIdentity(domain, sub string) string {
 
 	pre := strings.Split(strings.Trim(domain[:i], "."), ".")
 	return pre[len(pre)-1]
-}
-
-func GetRequestHost(s string) string {
-	var host string
-	if strings.Contains(s, ":") {
-		host, _, _ = net.SplitHostPort(s)
-	} else {
-		host = s
-	}
-	return host
 }

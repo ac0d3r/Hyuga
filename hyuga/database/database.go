@@ -16,6 +16,7 @@ func Init(dsn string) error {
 		opt *redis.Options
 		err error
 	)
+	// compatible with docker link
 	if dsn == "redis:6379" {
 		opt = &redis.Options{Addr: dsn, Password: "", DB: 0}
 	} else {

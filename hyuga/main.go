@@ -7,7 +7,7 @@ import (
 	"hyuga/config"
 	"hyuga/database"
 	"hyuga/handler/frontend"
-	"hyuga/handler/oob"
+	"hyuga/oob"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -17,12 +17,12 @@ func main() {
 	if err := config.SetFromYaml("config.yaml"); err != nil {
 		log.Fatalln(err)
 	}
-	if err := database.Init(config.C.Redis); err != nil {
+	if err := database.Init(config.RedisDsn); err != nil {
 		log.Fatal(err)
 	}
 
 	var engine *gin.Engine
-	if config.C.DebugMode {
+	if config.DebugMode {
 		engine = gin.Default()
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -32,12 +32,16 @@ func main() {
 	addRoute(engine)
 
 	dns := oob.NewDnsServer("")
-	go dns.ListenAndServe()
+	go func() {
+		log.Println("Listening and serving Dns on :53")
+		dns.ListenAndServe()
+	}()
 	defer func() {
 		if err := dns.Shutdown(); err != nil {
 			log.Println(err)
 		}
 	}()
+
 	if err := engine.Run(":8000"); err != nil {
 		log.Printf("Could not serve http on port 8000: %s\n", err)
 	}
