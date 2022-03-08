@@ -26,7 +26,7 @@ func HttpLog(c *gin.Context) {
 			Raw:        string(req),
 		}
 		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
-			log.Printf("SetUserRecord %s %#v error: %s", identity, record, err)
+			log.Printf("[http] set record %s %#v error: %s", identity, record, err)
 		}
 
 		c.Status(http.StatusOK)
@@ -49,7 +49,7 @@ func getRealIP(r *http.Request) string {
 
 func getIdentity(domain, sub string) string {
 	i := strings.Index(domain, sub)
-	if i == 0 || i == -1 {
+	if i <= 0 {
 		return ""
 	}
 

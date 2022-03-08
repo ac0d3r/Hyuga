@@ -25,7 +25,7 @@ type DnsServer struct {
 func NewDnsServer(addr string) *DnsServer {
 	server := &DnsServer{}
 	server.server = &dns.Server{
-		Addr:    addr + ":53",
+		Addr:    addr,
 		Net:     "udp",
 		Handler: server,
 	}
@@ -33,8 +33,10 @@ func NewDnsServer(addr string) *DnsServer {
 }
 
 func (d *DnsServer) ListenAndServe() {
+	log.Printf("[dns] listen on '%s'\n", d.server.Addr)
+
 	if err := d.server.ListenAndServe(); err != nil {
-		log.Printf("Could not serve dns on port 53: %s\n", err)
+		log.Printf("[dns] listen fail error: %s\n", err)
 	}
 }
 
@@ -70,13 +72,13 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			Created:    time.Now().Unix(),
 		}
 		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
-			log.Printf("SetUserRecord %s %#v error: %s\n", identity, record, err)
+			log.Printf("[dns] set record '%s' '%#v' error: %s\n", identity, record, err)
 		} else {
 			if name == fmt.Sprintf("r.%s.%s", identity, config.MainDomain) {
 				isDnsRebinding = true
 				t, err := database.SetUserDnsRebindingTimes(identity)
 				if err != nil {
-					log.Printf("GetUserDnsTimes %s error: %s\n", identity, err)
+					log.Printf("[dns] set query times '%s' error: %s\n", identity, err)
 				}
 				recordtimes = t
 			}
@@ -110,7 +112,7 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 	m.Answer = append(m.Answer, rrs...)
 	if err := w.WriteMsg(m); err != nil {
-		log.Printf("Failed to write message error: %s \n", err)
+		log.Printf("[dns] write message fail error: %s \n", err)
 	}
 }
 
@@ -121,7 +123,7 @@ func getDnsValue(defaults bool, identity string, recordtimes int64) net.IP {
 
 	ips, err := database.GetUserDNSRebinding(identity)
 	if err != nil {
-		log.Printf("GetUserDNSRebinding error: %s \n", err)
+		log.Printf("[dns] get DNS-Rebind fail error: %s \n", err)
 		return config.DefaultIP
 	}
 

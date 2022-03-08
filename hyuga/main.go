@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"hyuga/config"
 	"hyuga/database"
-	"hyuga/handler/frontend"
+	"hyuga/handler/router"
 	"hyuga/oob"
-
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -21,55 +22,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var engine *gin.Engine
-	if config.DebugMode {
-		engine = gin.Default()
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-		engine = gin.New()
+	http_ := &http.Server{
+		Addr:    ":8000",
+		Handler: router.Router(),
 	}
-	engine.SetTrustedProxies(nil)
-	addRoute(engine)
 
-	dns := oob.NewDnsServer("")
-	go func() {
-		log.Println("Listening and serving Dns on :53")
-		dns.ListenAndServe()
-	}()
+	dns := oob.NewDnsServer(":53")
+	jndi := oob.NewJndiServer(":8881")
+	go dns.ListenAndServe()
+	go http_.ListenAndServe()
+	go jndi.ListenAndServe()
+
 	defer func() {
-		if err := dns.Shutdown(); err != nil {
-			log.Println(err)
-		}
+		log.Println("[dns] shutdown", dns.Shutdown())
+		log.Println("[http] shutdown", http_.Shutdown(context.Background()))
+		log.Println("[jndi] shutdown", jndi.Shutdown())
+		jndi.Wait()
 	}()
 
-	if err := engine.Run(":8000"); err != nil {
-		log.Printf("Could not serve http on port 8000: %s\n", err)
-	}
-}
-
-func addRoute(engine *gin.Engine) {
-	engine.Use(frontend.MiddlewareForwardLog(),
-		static.Serve("/", static.LocalFile("dist", false)))
-	engine.NoRoute(func(c *gin.Context) { c.Status(http.StatusNotFound) })
-
-	addAPIRoute(engine.Group("/api"))
-}
-
-func addAPIRoute(group *gin.RouterGroup) {
-	userGroup := group.Group("/user")
-	userGroup.POST("create", frontend.CreateUser)
-
-	userGroup.Use(frontend.MiddlewareUserToken())
-	{
-		userGroup.GET("/dns-rebinding", frontend.GetUserDnsRebinding)
-		userGroup.POST("/dns-rebinding", frontend.UpdateUserDnsRebinding)
-		userGroup.POST("/delete", frontend.DeleteUser)
-	}
-
-	recordsGroup := group.Group("/record")
-	recordsGroup.Use(frontend.MiddlewareUserToken())
-	{
-		recordsGroup.GET("/list", frontend.GetRecords)
-		recordsGroup.POST("/clean", frontend.CleanRecords)
-	}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	<-c
 }

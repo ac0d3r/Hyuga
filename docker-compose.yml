@@ -21,6 +21,7 @@ services:
       - CONTAINER_TIMEZONE=Asia/Shanghai
     ports:
       - 80:8000
+      - 369:8881
       - "53:53/udp"
     restart: always
     depends_on:

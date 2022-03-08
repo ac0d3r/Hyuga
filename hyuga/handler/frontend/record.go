@@ -14,6 +14,8 @@ func GetRecords(c *gin.Context) {
 		record = database.DnsRecord{}
 	case "http":
 		record = database.HttpRecord{}
+	case "jndi":
+		record = database.JndiRecord{}
 	default:
 		base.ReturnError(c, 101)
 		return

@@ -18,6 +18,8 @@ dump.rdb
 .DS_Store
 node_modules
 dist/
+# tests
+tests/log4jtest/target
 
 # local env files
 .env

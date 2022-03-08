@@ -3,6 +3,7 @@ FROM node:lts-alpine as frontend-builder
 WORKDIR /opt/frontend
 
 COPY frontend .
+RUN npm install -g npm@8.3.0
 RUN npm install
 RUN npm run build
 

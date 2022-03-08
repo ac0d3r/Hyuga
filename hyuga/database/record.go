@@ -14,6 +14,12 @@ type Record interface {
 	Values() map[string]string
 }
 
+var (
+	_ Record = DnsRecord{}
+	_ Record = HttpRecord{}
+	_ Record = JndiRecord{}
+)
+
 type DnsRecord struct {
 	Name       string `json:"name"`
 	RemoteAddr string `json:"remote_addr"`
@@ -52,6 +58,26 @@ func (h HttpRecord) Values() map[string]string {
 
 func (d HttpRecord) Type() string {
 	return "http"
+}
+
+type JndiRecord struct {
+	Protocol   string `json:"protocol"`
+	RemoteAddr string `json:"remote_addr"`
+	Path       string `json:"path"`
+	Created    int64  `json:"created"`
+}
+
+func (j JndiRecord) Values() map[string]string {
+	return map[string]string{
+		"remote_addr": j.RemoteAddr,
+		"protocol":    j.Protocol,
+		"path":        j.Path,
+		"created":     strconv.FormatInt(j.Created, 10),
+	}
+}
+
+func (l JndiRecord) Type() string {
+	return "jndi"
 }
 
 func SetUserRecord(userID string, record Record, expire time.Duration) error {

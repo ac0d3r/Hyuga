@@ -11,20 +11,23 @@
       </div>
     </a-layout-content>
     <a-layout-footer :style="{ textAlign: 'center' }">
-      <a-icon type="github" /><a
+      <a
         target="_blank"
         href="https://github.com/Buzz2d0/Hyuga"
         style="padding: 0px 5px 0px 5px"
-        >Hyuga</a
-      >
-      © 2019-2021 Created by zznQ
+        ><a-icon type="github" style="color: rgb(61, 64, 67)"/>
+        Hyuga
+        <a-icon type="star" theme="filled" style="color: rgb(226, 197, 98)"
+      /></a>
+
+      © 2019-2022 Created by zznQ
+      <a-icon type="sync" spin />
     </a-layout-footer>
   </a-layout>
 </template>
 
 <script>
 import DnsLog from "../components/DnsLog.vue";
-
 export default {
   name: "Viewer",
   components: {

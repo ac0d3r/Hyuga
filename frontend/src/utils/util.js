@@ -18,4 +18,11 @@ function validateIPaddress(ipaddress) {
   return (false)
 }
 
-export { equar, validateIPaddress };
+function getUserId(host){
+  if (host !== undefined || typeof(host) !== 'string') return ""
+  const i = host.indexOf(".");
+  if (i === 0) return ""
+  return host.substring(0,i)
+}
+
+export { equar, validateIPaddress, getUserId};

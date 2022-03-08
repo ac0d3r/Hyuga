@@ -4,9 +4,8 @@
       <a-card hoverable style="width: 500px">
         <div>
           <a-icon slot="prefix" type="user" />:
-          <a-tag v-if="User.ID !== ''">{{ User.ID }}</a-tag>
+          <a-tag>{{ User.ID }}</a-tag>
           <a-icon
-            v-if="User.ID !== ''"
             type="copy"
             @click="
               () => {
@@ -17,13 +16,24 @@
         </div>
         <div>
           <a-icon slot="prefix" type="key" />:
-          <a-tag v-if="User.Token !== ''">{{ User.Token }}</a-tag>
+          <a-tag>{{ User.Token }}</a-tag>
           <a-icon
-            v-if="User.Token !== ''"
             type="copy"
             @click="
               () => {
                 copy(User.Token);
+              }
+            "
+          />
+        </div>
+        <div>
+          <a-icon slot="prefix" type="api" />:
+          <a-tag>{{ getJndiApi() }}</a-tag>
+          <a-icon
+            type="copy"
+            @click="
+              () => {
+                copy(getJndiApi());
               }
             "
           />
@@ -91,12 +101,8 @@
 
     <div>
       <a-table
-        :columns="
-          CurrentQueryMode === 'dns' ? DNSResult.fields : HttpResult.fields
-        "
-        :data-source="
-          CurrentQueryMode === 'dns' ? DNSResult.data : HttpResult.data
-        "
+        :columns="getCurrentListFields()"
+        :data-source="getCurrentData()"
       >
         <a slot="url" slot-scope="text">{{ text }}</a>
         <span slot="httpraw" slot-scope="rawText">
@@ -185,7 +191,7 @@ import {
   GetLogRecords,
   WipeRecodsData,
 } from "../utils/apis";
-import { equar, validateIPaddress } from "../utils/util";
+import { equar, validateIPaddress, getUserId } from "../utils/util";
 
 const formatTimestamp = (created) => {
   const parsed = parseInt(created, 10);
@@ -204,7 +210,7 @@ export default {
       IPs: [],
       OldIPs: [],
     },
-    QueryModes: ["dns", "http"],
+    QueryModes: ["dns", "http", "jndi"],
     CurrentQueryMode: "dns",
 
     DNSResult: {
@@ -243,6 +249,28 @@ export default {
           dataIndex: "raw",
           title: "HTTP Raw",
           scopedSlots: { customRender: "httpraw" },
+        },
+        {
+          key: "created",
+          dataIndex: "created",
+          title: "Created Time",
+          customRender: formatTimestamp,
+        },
+      ],
+      data: [],
+    },
+    JndiResult: {
+      fields: [
+        { dataIndex: "protocol", title: "Protocol", key: "protocol" },
+        {
+          dataIndex: "remote_addr",
+          title: "Remote Address",
+          key: "remote_addr",
+        },
+        {
+          dataIndex: "path",
+          title: "Path",
+          key: "path",
         },
         {
           key: "created",
@@ -307,6 +335,32 @@ export default {
     },
     handleSelectQueryModeChange() {
       this.getLogRecords();
+    },
+    getCurrentListFields() {
+      switch (this.CurrentQueryMode) {
+        case "http":
+          return this.HttpResult.fields;
+        case "jndi":
+          return this.JndiResult.fields;
+        default:
+          return this.DNSResult.fields;
+      }
+    },
+    getCurrentData() {
+      switch (this.CurrentQueryMode) {
+        case "http":
+          return this.HttpResult.data;
+        case "jndi":
+          return this.JndiResult.data;
+        default:
+          return this.DNSResult.data;
+      }
+    },
+    getJndiApi() {
+      const id = getUserId(this.User.ID);
+      return id !== ""
+        ? `{ldap|rmi}://${window.location.hostname}:369/${id}/{payload}`
+        : "";
     },
     formatHttpRaw(raw) {
       return raw.length > 80 ? `${raw.substring(0, 80)}...` : raw;
@@ -377,6 +431,9 @@ export default {
             break;
           case "http":
             this.HttpResult.data = data;
+            break;
+          case "jndi":
+            this.JndiResult.data = data;
             break;
         }
       };
