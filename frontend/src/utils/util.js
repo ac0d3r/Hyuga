@@ -19,7 +19,7 @@ function validateIPaddress(ipaddress) {
 }
 
 function getUserId(host){
-  if (host !== undefined || typeof(host) !== 'string') return ""
+  if (host === undefined || typeof(host) !== 'string') return ""
   const i = host.indexOf(".");
   if (i === 0) return ""
   return host.substring(0,i)
