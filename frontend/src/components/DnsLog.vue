@@ -443,6 +443,7 @@ export default {
       const succ = () => {
         this.DNSResult.data = [];
         this.HttpResult.data = [];
+        this.JndiResult.data = [];
         this.$message.success("records wiped successfully");
       };
       WipeRecodsData(succ, this.fail);

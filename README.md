@@ -24,15 +24,19 @@ DEMO 主页：http://hyuga.icu
 项目地址：https://github.com/Buzz2d0/Hyuga
 
 ## 📷 预览
-![demo.png](./docs/demo.png)
+<img width="1511" alt="image" src="https://user-images.githubusercontent.com/26270009/157201907-0c6d62b9-4232-457c-a7b4-9dcaee429bd1.png">
+
 
 
 ## 🌀 oob
 - dns
-    - 记录dns查询记录(query name, remote address)
+    - dns查询记录(query name, remote address)
     - 支持 dns-rebinding [#🔗](https://github.com/Buzz2d0/Hyuga#-dns-rebinding)
 - http 
-    - 记录 http 请求记录(url, method, remote address, raw request)
+    - http 请求记录(url, method, remote address, raw request)
+- ldap & rmi
+    - ldap&rmi 请求记录(protocol, remote address, path) 
+    > thx: [浅谈Log4j2不借助dnslog的检测](https://4ra1n.love/post/I_AYmmK2J/)
 
 ## 👀 其他
 - 部署参见 [DEPLOY.md](./DEPLOY.md)
@@ -40,7 +44,7 @@ DEMO 主页：http://hyuga.icu
 
 ### 🚀 查询 API
 - `GET` - http://`<hyuga.io>`/api/record/list?type=`<dns|http>`&token=`<token>`&filter=`<filter>`
-    - `type`: 查询类型 `dns|http`
+    - `type`: 查询类型 `dns|http|jndi`
     - `token`: 域名 token
     - `filter`: 过滤字符
 
@@ -49,6 +53,6 @@ DEMO 主页：http://hyuga.icu
 
 **e.g.** ip 为 `1.1.1.1`；dns 设置如下：
 
-<img src="https://user-images.githubusercontent.com/26270009/146206555-49450822-44b7-46f4-8942-b6bf831d76f8.png" width="420"/>
+<img width="420" alt="image" src="https://user-images.githubusercontent.com/26270009/157200281-06a3752b-5b48-45df-b0c4-864d7fc81b13.png">
 
 查询 `r.8q56.hyuga.io` 根据访问次数计算依次返回：`1.1.1.1` -> `127.0.0.1` -> `1.1.1.1`...
