@@ -34,6 +34,7 @@ func CleanRecords(c *gin.Context) {
 	records := []database.Record{
 		database.DnsRecord{},
 		database.HttpRecord{},
+		database.JndiRecord{},
 	}
 	for _, r := range records {
 		if err := database.DeleteRecordsByUserID(r, base.GetUserID(c)); err != nil {

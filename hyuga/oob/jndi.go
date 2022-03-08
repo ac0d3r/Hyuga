@@ -111,9 +111,8 @@ func (j *JndiServer) acceptProcess(conn *net.Conn) {
 		identity = getSubPath(path)
 		if identity != "" {
 			record = database.JndiRecord{
-				RemoteAddr: (*conn).RemoteAddr().String(),
-				Protocol:   "ldap",
-				Path:       path,
+				Protocol: "ldap",
+				Path:     path,
 			}
 		}
 	}
@@ -162,14 +161,14 @@ func (j *JndiServer) acceptProcess(conn *net.Conn) {
 		identity = getSubPath(path)
 		if identity != "" {
 			record = database.JndiRecord{
-				RemoteAddr: (*conn).RemoteAddr().String(),
-				Protocol:   "rmi",
-				Path:       path,
+				Protocol: "rmi",
+				Path:     path,
 			}
 		}
 	}
 
 	if identity != "" && database.UserExist(identity) {
+		record.RemoteAddr = strings.Split((*conn).RemoteAddr().String(), ":")[0]
 		record.Created = time.Now().Unix()
 		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
 			log.Printf("[jndi] set record '%s' '%#v' error: %s\n", identity, record, err)
