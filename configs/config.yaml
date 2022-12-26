@@ -1,0 +1,27 @@
+debug: true
+# logger configure
+logger:
+  level: "debug" # logger level
+  max-size: 20 # log file max size (MB)
+  max-age: 7 # log file save days
+  max-backups: 7 # log file max num
+  output: "log" # log file storage dir
+  stdout: true # enabled stdout
+
+db:
+  address: "127.0.0.1:3306"
+  username: "root"
+  password: "12345678"
+  database: "anylog"
+  charset: "utf8"
+
+oob:
+  dns:
+    domain: hyuga.io
+    ns: [ns1.app.io, ns2.app.io]
+    ip: 127.0.0.1
+  jndi:
+    address: ":233"
+
+api:
+  address: ":8080"
