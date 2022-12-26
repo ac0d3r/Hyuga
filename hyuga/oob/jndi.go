@@ -194,7 +194,7 @@ var (
 				02 01 03 -- The LDAP protocol version (integer value 3)
 				04 00 -- Empty bind DN (0-byte octet string)
 				80 00 -- Empty password (0-byte octet string with type context-specific
-			            -- primitive zero)
+					-- primitive zero)
 	*/
 	ldapfinger string = "300c020101600702010304008000"
 	/*
@@ -241,13 +241,19 @@ func checkRMI(data []byte) bool {
 		return false
 	}
 	// header
-	if data[0] == 0x4a && data[1] == 0x52 &&
-		data[2] == 0x4d && data[3] == 0x49 {
+	if data[0] == 0x4a &&
+		data[1] == 0x52 &&
+		data[2] == 0x4d &&
+		data[3] == 0x49 {
 		// version
-		if data[4] != 0x00 &&
-			data[4] != 0x01 {
+		if data[4] != 0x00 {
 			return false
 		}
+		if data[5] != 0x01 &&
+			data[5] != 0x02 {
+			return false
+		}
+
 		// protocol
 		if data[6] != 0x4b &&
 			data[6] != 0x4c &&

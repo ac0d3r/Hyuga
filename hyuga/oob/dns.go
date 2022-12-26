@@ -73,15 +73,15 @@ func (d *DnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
 			log.Printf("[dns] set record '%s' '%#v' error: %s\n", identity, record, err)
-		} else {
-			if name == fmt.Sprintf("r.%s.%s", identity, config.MainDomain) {
-				isDnsRebinding = true
-				t, err := database.SetUserDnsRebindingTimes(identity)
-				if err != nil {
-					log.Printf("[dns] set query times '%s' error: %s\n", identity, err)
-				}
-				recordtimes = t
+		}
+
+		if name == fmt.Sprintf("r.%s.%s", identity, config.MainDomain) {
+			isDnsRebinding = true
+			t, err := database.SetUserDnsRebindingTimes(identity)
+			if err != nil {
+				log.Printf("[dns] set query times '%s' error: %s\n", identity, err)
 			}
+			recordtimes = t
 		}
 	}
 

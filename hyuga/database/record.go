@@ -151,6 +151,8 @@ func GetUserRecordsByUserID(record Record, userID string, filter string) ([]map[
 			sample = data["name"]
 		case "http":
 			sample = data["url"]
+		case "jdni":
+			sample = data["path"]
 		}
 		if strings.Contains(sample, filter) {
 			resultList = append(resultList, data)

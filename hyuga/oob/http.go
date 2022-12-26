@@ -28,12 +28,9 @@ func HttpLog(c *gin.Context) {
 		if err := database.SetUserRecord(identity, record, config.RecordExpiration); err != nil {
 			log.Printf("[http] set record %s %#v error: %s", identity, record, err)
 		}
-
-		c.Status(http.StatusOK)
-		c.Writer.Write([]byte(http.StatusText(http.StatusOK)))
-		return
 	}
 	c.Status(http.StatusOK)
+	c.Writer.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
 func getRealIP(r *http.Request) string {
