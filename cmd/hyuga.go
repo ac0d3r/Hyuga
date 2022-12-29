@@ -17,7 +17,7 @@ var (
 )
 
 func main() {
-	fmt.Printf(`anylog build info:
+	fmt.Printf(`hyuga build info:
 	buildstamp: %s 
 	githash: %s
 	lasttag: %s 

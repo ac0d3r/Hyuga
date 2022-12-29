@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in anylog/internal/db/ent/runtime.go
+// The schema-stitching logic is generated in hyuga/internal/db/ent/runtime.go
 
 const (
 	Version = "v0.11.4"                                         // Version of ent codegen.
