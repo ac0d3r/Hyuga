@@ -9,6 +9,7 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/ac0d3r/hyuga/internal/server"
 	"golang.org/x/sync/errgroup"
 )
@@ -52,7 +53,8 @@ func (a *App) Run() (err error) {
 		}
 	})
 
-	server.Run(ctx, g, a.cnf.Web, a.db)
+	server.Run(ctx, g, a.db, a.cnf.Web, &a.cnf.OOB.DNS, a.recorder)
+	oob.Run(ctx, g, a.db, a.cnf.OOB, a.recorder)
 
 	err = g.Wait()
 	if errors.Is(err, errOSSignal) {

@@ -1,14 +1,15 @@
 package oob
 
 import (
-	"context"
+	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/ac0d3r/hyuga/internal/config"
+	"github.com/ac0d3r/hyuga/internal/db"
 	"github.com/miekg/dns"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -18,36 +19,16 @@ const (
 )
 
 type Dns struct {
-	cnf *config.DNS
+	db       *db.DB
+	cnf      *config.DNS
+	recorder *db.Recorder
 }
 
-func NewDns(cnf *config.DNS) *Dns {
-	return &Dns{cnf: cnf}
-}
-
-func (d *Dns) Run(ctx context.Context, g *errgroup.Group) {
-	g.Go(func() error {
-		udpServ := &dns.Server{
-			Addr:    ":53",
-			Net:     "udp",
-			Handler: d,
-		}
-		return udpServ.ListenAndServe()
-	})
-	g.Go(func() error {
-		tcpServ := &dns.Server{
-			Addr:    ":53",
-			Net:     "tcp",
-			Handler: d,
-		}
-		return tcpServ.ListenAndServe()
-	})
+func NewDns(db *db.DB, cnf *config.DNS, recorder *db.Recorder) *Dns {
+	return &Dns{cnf: cnf, recorder: recorder}
 }
 
 func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
-	// ctx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
-
 	m := new(dns.Msg)
 	m.SetReply(r)
 	m.Compress = false
@@ -62,11 +43,25 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	question := r.Question[0]
+	logrus.Infof("[oob][dns] query '%s' from '%s'", question.Name, w.RemoteAddr().String())
+
+	var user *db.User
 	dnsName := strings.Trim(question.Name, ".")
 	sid := parseSid(dnsName, d.cnf.Main)
-
 	if sid != "" {
-		// TODO
+		u, err := d.db.GetUserBySid(sid)
+		if err == nil && u != nil {
+			user = u
+			ip, _, _ := net.SplitHostPort(w.RemoteAddr().String())
+			if err := d.recorder.Record(sid, OOBRecord{
+				Type:       OOBDNS,
+				Name:       dnsName,
+				RemoteAddr: ip,
+				CreatedAt:  time.Now().Unix(),
+			}); err != nil {
+				logrus.Warnf("[dns] record sid '%s' error: %s", sid, err)
+			}
+		}
 	}
 
 	rrs := make([]dns.RR, 0)
@@ -80,7 +75,23 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	case dns.TypeANY:
 		fallthrough
 	case dns.TypeA, dns.TypeAAAA:
-		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: net.IP(d.cnf.IP)})
+		if user != nil && d.isDnsRebindQuery(sid, dnsName) {
+			dnsa := &dns.A{Hdr: rrHeader, A: net.ParseIP(d.cnf.IP)}
+			if len(user.DnsRebind.DNS) > 0 {
+				rrHeader.Ttl = ZeroTTL
+				dnss := []string{d.cnf.IP}
+				dnss = append(dnss, user.DnsRebind.DNS...)
+				dnsa.A = net.ParseIP(dnss[user.DnsRebind.Times%int64(len(dnss))])
+				// update rebinding times
+				user.DnsRebind.Times++
+				if err := d.db.UpdateUser(user); err != nil {
+					logrus.Warnf("[dns] update user '%s' error: %s", user.Sid, err)
+				}
+			}
+			rrs = append(rrs, dnsa)
+		} else {
+			rrs = append(rrs, &dns.A{Hdr: rrHeader, A: net.ParseIP(d.cnf.IP)})
+		}
 	case dns.TypeNS:
 		rrHeader.Ttl = NsTTL
 		for _, ns := range d.cnf.NS {
@@ -95,4 +106,8 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	if err := w.WriteMsg(m); err != nil {
 		logrus.Warnf("[dns] write message fail error: %s \n", err)
 	}
+}
+
+func (d *Dns) isDnsRebindQuery(sid, domain string) bool {
+	return domain == fmt.Sprintf("r.%s.%s", sid, d.cnf.Main)
 }

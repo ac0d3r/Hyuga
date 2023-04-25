@@ -12,12 +12,14 @@ import (
 type User struct {
 	BaseModel
 	GithubUserInfo
-	Sid      string `json:"sid"`       // 用于分配子域名
-	Token    string `json:"token"`     // token
-	APIToken string `json:"api_token"` // API Token
-	// TODO
-	// ReBing
-	// notify
+	Sid       string `json:"sid"`       // 用于分配子域名
+	Token     string `json:"token"`     // token
+	APIToken  string `json:"api_token"` // API Token
+	DnsRebind struct {
+		DNS   []string `json:"dns"`
+		Times int64    `json:"times"`
+	} `json:"dns_rebind"`
+	Notify any `json:"notify"`
 }
 
 type GithubUserInfo struct {

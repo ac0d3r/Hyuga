@@ -1,23 +1,41 @@
 package handler
 
 import (
+	"net"
+	"net/http"
+
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/gin-gonic/gin"
 )
 
 type restfulHandler struct {
-	db  *db.DB
-	cnf *config.Web
+	db       *db.DB
+	cnf      *config.Web
+	dns      *config.DNS
+	recorder *db.Recorder
 }
 
 var _ Register = (*restfulHandler)(nil)
 
-func NewRESTfulHandler(db *db.DB, cnf *config.Web) Register {
-	return &restfulHandler{db: db, cnf: cnf}
+func NewRESTfulHandler(db *db.DB,
+	cnf *config.Web,
+	dns *config.DNS,
+	recorder *db.Recorder) Register {
+
+	return &restfulHandler{
+		db:       db,
+		cnf:      cnf,
+		dns:      dns,
+		recorder: recorder,
+	}
 }
 
 func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
+	g.Use(r.oobHttp())
+	g.NoRoute(func(c *gin.Context) { c.Status(http.StatusNotFound) })
+
 	api := g.Group("/api/v2")
 	api.GET("/login", r.login)
 
@@ -28,6 +46,18 @@ func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
 		user.GET("/info", r.info)
 		user.POST("/reset_token", r.reset_token)
 		user.POST("/logout", r.logout)
+	}
+}
+
+func (r *restfulHandler) oobHttp() gin.HandlerFunc {
+	httplog := oob.NewHTTP(nil, r.recorder)
+
+	return func(c *gin.Context) {
+		host, _, _ := net.SplitHostPort(c.Request.Host)
+		if host != r.dns.Main {
+			httplog.Record(c)
+			c.Abort()
+		}
 	}
 }
 

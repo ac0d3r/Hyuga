@@ -12,13 +12,19 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func Run(ctx context.Context, g *errgroup.Group, cnf *config.Web, db *db.DB) {
+func Run(ctx context.Context,
+	g *errgroup.Group,
+	db *db.DB,
+	cnf *config.Web,
+	dns *config.DNS,
+	recorder *db.Recorder) {
+
 	gin.SetMode(gin.ReleaseMode)
 
 	g.Go(func() error {
 		logrus.Infof("[server] web listen at '%s'", cnf.Address)
 		web := httpx.NewBaseGinServer(
-			handler.NewRESTfulHandler(db, cnf).RegisterHandler)
+			handler.NewRESTfulHandler(db, cnf, dns, recorder).RegisterHandler)
 
 		return web.Start(ctx, false, cnf.Address)
 	})
