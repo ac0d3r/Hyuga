@@ -2,103 +2,61 @@ package app
 
 import (
 	"context"
-	"net/http"
+	"errors"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
-	"hyuga/internal/config"
-	"hyuga/internal/db"
-	"hyuga/internal/handler"
-	"hyuga/internal/oob"
-
-	"github.com/sirupsen/logrus"
+	"github.com/ac0d3r/hyuga/internal/config"
+	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/server"
+	"golang.org/x/sync/errgroup"
 )
 
 type App struct {
-	ctx    context.Context
-	cancel func()
-
-	cnf  *config.Config
-	sigs []os.Signal
+	db       *db.DB
+	recorder *db.Recorder
+	cnf      *config.Config
 }
 
-func New(c *config.Config) (*App, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+var errOSSignal = errors.New("os signal")
+
+func New(cnf *config.Config) (*App, error) {
+	db_, err := db.NewDB(cnf.DB)
+	if err != nil {
+		return nil, err
+	}
 
 	return &App{
-		ctx:    ctx,
-		cancel: cancel,
-		cnf:    c,
-		sigs:   []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
+		db:       db_,
+		recorder: db.NewRecorder(),
+		cnf:      cnf,
 	}, nil
 }
 
-func (a *App) Run() error {
-	var (
-		err error
-		wg  sync.WaitGroup
-	)
+func (a *App) Run() (err error) {
+	defer func() {
+		a.db.Close()
+	}()
 
-	// db client
-	dbc, err := db.New(a.cnf)
-	if err != nil {
-		return err
+	g, ctx := errgroup.WithContext(context.Background())
+	g.Go(func() error {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-c:
+			return errOSSignal
+		}
+	})
+
+	server.Run(ctx, g, a.cnf.Web, a.db)
+
+	err = g.Wait()
+	if errors.Is(err, errOSSignal) {
+		return nil
 	}
-
-	// http server
-	h := handler.New(a.cnf, dbc)
-	engine := h.Route()
-	api := &http.Server{
-		Addr:    a.cnf.Api.Address,
-		Handler: engine,
-	}
-	dns := oob.NewDns(&a.cnf.OOB, dbc)
-	jndi := oob.NewJndi(&a.cnf.OOB, dbc)
-
-	wg.Add(4)
-	go func() {
-		defer wg.Done()
-		if err = api.ListenAndServe(); err != nil {
-			logrus.Warnf("api server listen error", err)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		if err = dns.ListenAndServe(); err != nil {
-			logrus.Warnf("dns server listen error", err)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		err = jndi.ListenAndServe()
-	}()
-
-	go func() {
-		defer wg.Done()
-		<-a.ctx.Done()
-		if err = api.Shutdown(a.ctx); err != nil {
-			logrus.Warnf("api server shurdown error", err)
-		}
-		if err = dns.Shutdown(); err != nil {
-			logrus.Warnf("dns server shurdown error", err)
-		}
-		if err = jndi.Shutdown(); err != nil {
-			logrus.Warnf("jndi server shurdown error", err)
-		}
-	}()
-
-	// signel
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, a.sigs...)
-	go func() {
-		<-c
-		if a.cancel != nil {
-			a.cancel()
-		}
-	}()
-
-	wg.Wait()
 	return err
 }

@@ -5,11 +5,10 @@ import (
 	"net"
 	"strings"
 
-	"hyuga/internal/config"
-	"hyuga/internal/db"
-
+	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/miekg/dns"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -19,27 +18,35 @@ const (
 )
 
 type Dns struct {
-	cnf *config.OOB
-	db  *db.Client
-
-	*dns.Server
+	cnf *config.DNS
 }
 
-func NewDns(cnf *config.OOB,
-	db *db.Client) *Dns {
+func NewDns(cnf *config.DNS) *Dns {
+	return &Dns{cnf: cnf}
+}
 
-	d := &Dns{cnf: cnf, db: db}
-	d.Server = &dns.Server{
-		Addr:    ":53",
-		Net:     "udp",
-		Handler: d,
-	}
-	return d
+func (d *Dns) Run(ctx context.Context, g *errgroup.Group) {
+	g.Go(func() error {
+		udpServ := &dns.Server{
+			Addr:    ":53",
+			Net:     "udp",
+			Handler: d,
+		}
+		return udpServ.ListenAndServe()
+	})
+	g.Go(func() error {
+		tcpServ := &dns.Server{
+			Addr:    ":53",
+			Net:     "tcp",
+			Handler: d,
+		}
+		return tcpServ.ListenAndServe()
+	})
 }
 
 func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 
 	m := new(dns.Msg)
 	m.SetReply(r)
@@ -49,19 +56,17 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	if len(r.Question) == 0 {
 		return
 	}
+
 	if r.Opcode != dns.OpcodeQuery {
 		return
 	}
 
 	question := r.Question[0]
 	dnsName := strings.Trim(question.Name, ".")
-	sid := parseSid(dnsName, d.cnf.Dns.Domain)
+	sid := parseSid(dnsName, d.cnf.Main)
 
 	if sid != "" {
-		remoteAddr := strings.Split(w.RemoteAddr().String(), ":")[0]
-		if _, err := d.db.CreateDNSRecord(ctx, sid, dnsName, remoteAddr); err != nil {
-			logrus.Warnf("[dns] set record '%s' '%#v' error: %s\n", sid, dnsName, err)
-		}
+		// TODO
 	}
 
 	rrs := make([]dns.RR, 0)
@@ -74,11 +79,11 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	switch question.Qtype {
 	case dns.TypeANY:
 		fallthrough
-	case dns.TypeA:
-		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: net.IP(d.cnf.Dns.IP)})
+	case dns.TypeA, dns.TypeAAAA:
+		rrs = append(rrs, &dns.A{Hdr: rrHeader, A: net.IP(d.cnf.IP)})
 	case dns.TypeNS:
 		rrHeader.Ttl = NsTTL
-		for _, ns := range d.cnf.Dns.NS {
+		for _, ns := range d.cnf.NS {
 			rrs = append(rrs, &dns.NS{Hdr: rrHeader, Ns: ns})
 		}
 	default:

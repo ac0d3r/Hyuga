@@ -28,34 +28,39 @@ import (
 )
 
 type Config struct {
+	AppName    string `mapstructure:"app"`
 	Level      string `mapstructure:"level"`
 	MaxSize    int    `mapstructure:"max-size"`
 	MaxAge     int    `mapstructure:"max-age"`
-	MaxBackups int    `mapstructure:"max-backups"`
+	MaxBackups int    `mapstructure:"max-backup"`
 	Output     string `mapstructure:"output"`
 	Stdout     bool   `mapstructure:"stdout"`
+	ShowFile   bool   `mapstructure:"show-file"`
 }
 
-func Init(c Config) error {
+func Init(cfg *Config) error {
 	// setup log formatter
 	logrus.SetFormatter(&nested.Formatter{
 		TimestampFormat: time.RFC3339,
 		HideKeys:        true,
 	})
 
-	level, err := logrus.ParseLevel(c.Level)
+	level, err := logrus.ParseLevel(cfg.Level)
 	if err != nil {
 		return err
 	}
 	logrus.SetLevel(level)
 
 	// disable writing to stdout
-	if !c.Stdout {
+	if !cfg.Stdout {
 		logrus.SetOutput(io.Discard)
 	}
 
 	// initialize log rotate hook
-	rhook, err := NewHook(os.Args[0], c, level)
+	if cfg.AppName == "" {
+		cfg.AppName = os.Args[0]
+	}
+	rhook, err := NewHook(cfg.AppName, cfg, level)
 	if err != nil {
 		return err
 	}
@@ -68,12 +73,13 @@ func Init(c Config) error {
 type File struct {
 	app       string
 	level     logrus.Level
+	file      bool
 	formatter logrus.Formatter
 	w         io.Writer
 }
 
 // NewHook builds a new rotate file hook.
-func NewHook(app string, c Config, level logrus.Level) (logrus.Hook, error) {
+func NewHook(app string, cfg *Config, level logrus.Level) (logrus.Hook, error) {
 	name := os.Getenv("LOG_NAME")
 	if len(name) == 0 {
 		name = filepath.Base(os.Args[0])
@@ -82,16 +88,17 @@ func NewHook(app string, c Config, level logrus.Level) (logrus.Hook, error) {
 	return &File{
 		app:   app,
 		level: level,
+		file:  cfg.ShowFile,
 		formatter: &nested.Formatter{
 			TimestampFormat: time.RFC3339,
 			NoColors:        true,
 			HideKeys:        true,
 		},
 		w: &lumberjack.Logger{
-			Filename:   filepath.Join(c.Output, name+".log"),
-			MaxSize:    c.MaxSize,
-			MaxAge:     c.MaxAge,
-			MaxBackups: c.MaxBackups,
+			Filename:   filepath.Join(cfg.Output, name+".log"),
+			MaxSize:    cfg.MaxSize,
+			MaxAge:     cfg.MaxAge,
+			MaxBackups: cfg.MaxBackups,
 		},
 	}, nil
 }
@@ -103,8 +110,10 @@ func (hook *File) Levels() []logrus.Level {
 
 // Fire is called by logrus when it is about to write the log entry.
 func (hook *File) Fire(entry *logrus.Entry) (err error) {
-	// entry.Data["app"] = hook.app
-	entry.Data["file"] = findCaller()
+	entry.Data["app"] = hook.app
+	if hook.file {
+		entry.Data["file"] = FindCaller()
+	}
 	b, err := hook.formatter.Format(entry)
 	if err != nil {
 		return err
@@ -113,7 +122,7 @@ func (hook *File) Fire(entry *logrus.Entry) (err error) {
 	return err
 }
 
-func findCaller() string {
+func FindCaller() string {
 	var (
 		file string
 		line int

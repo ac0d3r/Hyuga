@@ -1,0 +1,35 @@
+# logger configure
+[logger]
+    # log app name
+    app = "hyuga"
+    # logger level
+    level = "debug"
+    # log file max size (MB)
+    max-size = 20
+    # log file save days
+    max-age = 7
+    # log file max num
+    max-backups = 7
+    # log file storage dir
+    output = "log"
+    # enabled stdout
+    stdout = true
+    # enabled show file
+    show-file = false
+
+[db]
+    dsn = "hyuga.db"
+
+[oob]
+    [oob.dns]
+        domain = "hyuga.io"
+        ip = "127.0.0.1"
+        ns = ["ns1.app.io", "ns2.app.io"]
+    [oob.jndi]
+        address = ":233"
+
+[web]
+    address = ":8080"
+    [web.github]
+        client-id = ""
+        client-secret = ""

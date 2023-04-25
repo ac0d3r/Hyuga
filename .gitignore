@@ -18,6 +18,9 @@ dump.rdb
 .DS_Store
 node_modules
 dist/
+*.db
+*.log
+
 # tests
 tests/log4jtest/target
 
@@ -34,7 +37,6 @@ pnpm-debug.log*
 
 # Editor directories and files
 .idea
-.vscode
 *.suo
 *.ntvs*
 *.njsproj

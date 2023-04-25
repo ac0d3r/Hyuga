@@ -1,84 +1,97 @@
 package handler
 
 import (
-	"strings"
+	"fmt"
+	"net/http"
 
-	"hyuga/internal/config"
-	"hyuga/internal/db"
-	"hyuga/internal/handler/base"
-	"hyuga/internal/oob"
-
+	"github.com/ac0d3r/hyuga/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
-type handler struct {
-	cnf *config.Config
-	db  *db.Client
+type Register interface {
+	RegisterHandler(g *gin.Engine)
 }
 
-func New(c *config.Config, db *db.Client) *handler {
-	base.Debug = c.DebugMode
-	return &handler{
-		cnf: c,
-		db:  db,
+func BindParam(c *gin.Context, obj any) bool {
+	if err := c.ShouldBind(obj); err != nil {
+		ReturnError(c, errParams, err)
+		return true
 	}
+	return false
 }
 
-func (h *handler) Route() *gin.Engine {
-	var engine *gin.Engine
-	if h.cnf.DebugMode {
-		engine = gin.Default()
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-		engine = gin.New()
+type Result struct {
+	Code errCode     `json:"code"`
+	Msg  string      `json:"message,omitempty"`
+	Data interface{} `json:"data,omitempty"`
+}
+
+// ReturnJSON 返回正确的业务数据
+func ReturnJSON(c *gin.Context, data any) {
+	defer func() {
+		if e := recover(); e != nil {
+			ReturnError(c, errInternal, fmt.Errorf("recover error: %v", e))
+		}
+	}()
+	c.JSON(http.StatusOK, Result{
+		Data: data,
+	})
+}
+
+type errCode int
+
+const (
+	errInternal errCode = 1000 + iota
+	errParams
+	errDatabase
+
+	errOauth
+	errUnauthorizedAccess
+)
+
+var errorMap = map[errCode]string{
+	errInternal:           "服务器内部错误",
+	errParams:             "请求参数错误",
+	errDatabase:           "数据库操作错误",
+	errOauth:              "授权错误",
+	errUnauthorizedAccess: "鉴权错误",
+}
+
+// ReturnError 返回错误
+func ReturnError(c *gin.Context, code errCode, err error) {
+	msg, has := errorMap[code]
+	if !has {
+		msg = "unknown error code"
 	}
-	engine.SetTrustedProxies(nil)
-	engine.Use(h.middlewareForwardLog())
 
-	user := NewUser(h.db)
-	user.Route(engine, h.middlewareUserToken())
-	record := NewRecord(h.db)
-	record.Route(engine, h.middlewareUserToken())
-	return engine
+	if err != nil {
+		logrus.Warnf("[handler] {%s}->[%s] error: #(%v)", c.Request.RequestURI, logger.FindCaller(), err)
+	}
+
+	c.JSON(http.StatusOK, Result{
+		Code: code,
+		Msg:  msg,
+	})
 }
 
-func (h *handler) middlewareUserToken() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var token string
-		authorization := c.Request.Header.Get("Authorization")
-		if authorization == "" {
-			token = c.Query("token")
-		} else {
-			token = strings.TrimPrefix(authorization, "Bearer ")
-		}
-
-		if token == "" {
-			base.ReturnUnauthorized(c, 2000)
-			c.Abort()
-			return
-		}
-
-		user, err := h.db.GetUserByToken(c.Request.Context(), token)
+func ReturnUnauthorized(c *gin.Context, code errCode, err ...error) {
+	msg, has := errorMap[code]
+	if !has {
+		msg = "unknown error code"
+	}
+	if len(err) > 0 {
 		if err != nil {
-			base.ReturnUnauthorized(c, 2000)
-			c.Abort()
-			return
+			logrus.Warnf("[handler] {%s}->[%s] error: #(%v)", c.Request.RequestURI, logger.FindCaller(), err)
 		}
-
-		c.Set("uid", user.ID)
-		c.Set("token", user.Token)
-		c.Next()
 	}
+
+	c.JSON(http.StatusUnauthorized, Result{
+		Code: code,
+		Msg:  msg,
+	})
 }
 
-func (h *handler) middlewareForwardLog() gin.HandlerFunc {
-	httplog := oob.NewHTTPLog(&h.cnf.OOB, h.db)
-
-	return func(c *gin.Context) {
-		host := strings.Split(c.Request.Host, ":")[0]
-		if host != h.cnf.OOB.Dns.Domain {
-			httplog.Record(c)
-			c.Abort()
-		}
-	}
+func GetUserID(c *gin.Context) int {
+	return c.GetInt("uid")
 }
