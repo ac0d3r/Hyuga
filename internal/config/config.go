@@ -14,13 +14,19 @@ type Config struct {
 }
 
 type OOB struct {
-	DNS DNS `mapstructure:"dns"`
+	DNS  DNS  `mapstructure:"dns"`
+	JNDI JNDI `mapstructure:"jndi"`
 }
 
 type DNS struct {
 	Main string   `mapstructure:"main"`
 	NS   []string `mapstructure:"ns"`
 	IP   string   `mapstructure:"ip"`
+}
+
+type JNDI struct {
+	Address string `mapstructure:"address"`
+	Limit   int64  `mapstructure:"limit"`
 }
 
 type Web struct {

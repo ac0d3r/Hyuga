@@ -36,11 +36,19 @@ func Run(ctx context.Context,
 		logrus.Infof("[oob] dns is listen at '[%s]%s'", tcpServ.Net, tcpServ.Addr)
 		return tcpServ.ListenAndServe()
 	})
+
+	jndi := NewJNDI(db, &cnf.JNDI, r)
+	g.Go(func() error {
+		logrus.Infof("[oob] jndi listen at '%s'", cnf.JNDI.Address)
+		return jndi.Run(ctx)
+	})
 }
 
 const (
 	OOBDNS = iota
 	OOBHTTP
+	OOBLDAP
+	OOBRMI
 )
 
 type OOBRecord struct {
