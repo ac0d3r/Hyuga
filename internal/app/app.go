@@ -9,15 +9,18 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/event"
 	"github.com/ac0d3r/hyuga/internal/oob"
+	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/ac0d3r/hyuga/internal/server"
 	"golang.org/x/sync/errgroup"
 )
 
 type App struct {
 	db       *db.DB
-	recorder *db.Recorder
 	cnf      *config.Config
+	eventbus *event.EventBus
+	recorder *record.Recorder
 }
 
 var errOSSignal = errors.New("os signal")
@@ -28,10 +31,13 @@ func New(cnf *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	e := event.NewEventBus()
+
 	return &App{
 		db:       db_,
-		recorder: db.NewRecorder(),
 		cnf:      cnf,
+		eventbus: e,
+		recorder: record.NewRecorder(e),
 	}, nil
 }
 
@@ -53,7 +59,7 @@ func (a *App) Run() (err error) {
 		}
 	})
 
-	server.Run(ctx, g, a.db, a.cnf.Web, &a.cnf.OOB.DNS, a.recorder)
+	server.Run(ctx, g, a.db, a.cnf.Web, &a.cnf.OOB.DNS, a.eventbus, a.recorder)
 	oob.Run(ctx, g, a.db, a.cnf.OOB, a.recorder)
 
 	err = g.Wait()

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/miekg/dns"
 	"github.com/sirupsen/logrus"
 )
@@ -21,11 +22,11 @@ const (
 type Dns struct {
 	db       *db.DB
 	cnf      *config.DNS
-	recorder *db.Recorder
+	recorder *record.Recorder
 }
 
-func NewDns(db *db.DB, cnf *config.DNS, recorder *db.Recorder) *Dns {
-	return &Dns{cnf: cnf, recorder: recorder}
+func NewDns(db *db.DB, cnf *config.DNS, recorder *record.Recorder) *Dns {
+	return &Dns{db: db, cnf: cnf, recorder: recorder}
 }
 
 func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/db"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
 
@@ -154,7 +155,52 @@ func (w *restfulHandler) info(c *gin.Context) {
 
 }
 
-func (w *restfulHandler) reset_token(c *gin.Context) {
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	}}
+
+func (w *restfulHandler) record(c *gin.Context) {
+	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logrus.Warnf("[restful] upgrade websocket failed: %v", err)
+		return
+	}
+
+	sid := c.GetString("sid")
+	go func() {
+		defer ws.Close()
+
+		logrus.Infof("[restful] start record stream")
+		c := make(chan struct{})
+		go func() {
+			if _, _, err := ws.ReadMessage(); err != nil {
+				close(c)
+			}
+		}()
+
+		s := w.eventbus.Subscribe(sid)
+		defer w.eventbus.Unsubscribe(s)
+		for {
+			select {
+			case <-c:
+				logrus.Infof("[restful] close record stream")
+				return
+			case msg := <-s.Out():
+				logrus.Infof("[restful][stream] push record msg: %v", msg)
+				if err = ws.WriteJSON(msg); err != nil {
+					return
+				}
+			}
+		}
+	}()
+}
+
+func (w *restfulHandler) setInfo(c *gin.Context) {
+
+}
+
+func (w *restfulHandler) resetToken(c *gin.Context) {
 
 }
 

@@ -19,7 +19,19 @@ type User struct {
 		DNS   []string `json:"dns"`
 		Times int64    `json:"times"`
 	} `json:"dns_rebind"`
-	Notify any `json:"notify"`
+	Notify Notify `json:"notify"`
+}
+
+// TODO
+type Notify struct {
+	Dingtalk struct {
+		Token  string `json:"token"`
+		Secret string `json:"secret"`
+	} `json:"dingtalk"`
+	Bark struct {
+		Token  string `json:"token"`
+		Secret string `json:"secret"`
+	} `json:"bark"`
 }
 
 type GithubUserInfo struct {
@@ -40,6 +52,7 @@ func (db *DB) CreateUser(m *User) error {
 func (db *DB) GetUserByGithub(gid int64) (*User, error) {
 	m := &User{}
 	iter := db.NewIterator(util.BytesPrefix(m.pre()), nil)
+	defer iter.Release()
 	for iter.Next() {
 		u := &User{}
 		if err := u.decode(iter.Value()); err == nil {
@@ -48,8 +61,6 @@ func (db *DB) GetUserByGithub(gid int64) (*User, error) {
 			}
 		}
 	}
-
-	iter.Release()
 	return nil, iter.Error()
 }
 

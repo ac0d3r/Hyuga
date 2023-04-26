@@ -1,4 +1,4 @@
-package db
+package record
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestRecod(t *testing.T) {
-	r := NewRecorder()
+	r := NewRecorder(nil)
 	for i := 0; i < 66; i++ {
 		r.Record("test", fmt.Sprintf("%s-%d", "test", i))
 	}

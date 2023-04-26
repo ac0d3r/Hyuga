@@ -6,6 +6,7 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/miekg/dns"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -15,7 +16,7 @@ func Run(ctx context.Context,
 	g *errgroup.Group,
 	db *db.DB,
 	cnf *config.OOB,
-	r *db.Recorder) {
+	r *record.Recorder) {
 
 	dns_ := NewDns(db, &cnf.DNS, r)
 	g.Go(func() error {

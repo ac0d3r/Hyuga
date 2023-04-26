@@ -22,11 +22,12 @@
 
 [oob]
     [oob.dns]
-        domain = "hyuga.io"
-        ip = "127.0.0.1"
+        main = "hyuga.io"
+        ip = "1.1.1.1"
         ns = ["ns1.app.io", "ns2.app.io"]
     [oob.jndi]
         address = ":233"
+        limit = 1000
 
 [web]
     address = ":8080"

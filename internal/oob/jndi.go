@@ -10,6 +10,7 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/ac0d3r/hyuga/pkg/limiter"
 	"github.com/sirupsen/logrus"
 )
@@ -17,11 +18,11 @@ import (
 type JNDI struct {
 	db       *db.DB
 	cnf      *config.JNDI
-	recorder *db.Recorder
+	recorder *record.Recorder
 	limit    *limiter.Limiter
 }
 
-func NewJNDI(db *db.DB, cnf *config.JNDI, recorder *db.Recorder) *JNDI {
+func NewJNDI(db *db.DB, cnf *config.JNDI, recorder *record.Recorder) *JNDI {
 	return &JNDI{
 		db:       db,
 		cnf:      cnf,

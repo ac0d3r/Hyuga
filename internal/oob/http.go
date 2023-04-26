@@ -8,17 +8,17 @@ import (
 	"time"
 
 	"github.com/ac0d3r/hyuga/internal/config"
-	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type HTTP struct {
 	cnf      *config.DNS
-	recorder *db.Recorder
+	recorder *record.Recorder
 }
 
-func NewHTTP(cnf *config.DNS, recorder *db.Recorder) *HTTP {
+func NewHTTP(cnf *config.DNS, recorder *record.Recorder) *HTTP {
 	return &HTTP{cnf: cnf, recorder: recorder}
 }
 

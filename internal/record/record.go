@@ -1,9 +1,10 @@
-package db
+package record
 
 import (
 	"sync"
 	"time"
 
+	"github.com/ac0d3r/hyuga/internal/event"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -16,10 +17,11 @@ const (
 )
 
 type Recorder struct {
-	pool *cache.Cache
+	pool     *cache.Cache
+	eventbus *event.EventBus
 }
 
-func NewRecorder() *Recorder {
+func NewRecorder(eventbus *event.EventBus) *Recorder {
 	c := cache.New(defaultCacheExpiration, defaultCacheCleanup)
 	c.OnEvicted(func(key string, v any) {
 		logrus.Debugf("[db][recorder] key:%s deleted", key)
@@ -30,11 +32,16 @@ func NewRecorder() *Recorder {
 	})
 
 	return &Recorder{
-		pool: c,
+		pool:     c,
+		eventbus: eventbus,
 	}
 }
 
 func (r *Recorder) Record(userid string, v any) error {
+	if r.eventbus != nil {
+		r.eventbus.Publish(userid, v)
+	}
+
 	lru_, ok := r.pool.Get(userid)
 	if !ok {
 		l := getlru()
