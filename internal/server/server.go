@@ -5,10 +5,10 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
-	"github.com/ac0d3r/hyuga/internal/event"
 	"github.com/ac0d3r/hyuga/internal/handler"
 	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/ac0d3r/hyuga/internal/record"
+	"github.com/ac0d3r/hyuga/pkg/event"
 	"github.com/ac0d3r/hyuga/pkg/httpx"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

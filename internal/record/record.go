@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ac0d3r/hyuga/internal/event"
+	"github.com/ac0d3r/hyuga/pkg/event"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"

@@ -6,9 +6,9 @@ import (
 
 	"github.com/ac0d3r/hyuga/internal/config"
 	"github.com/ac0d3r/hyuga/internal/db"
-	"github.com/ac0d3r/hyuga/internal/event"
 	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/ac0d3r/hyuga/internal/record"
+	"github.com/ac0d3r/hyuga/pkg/event"
 	"github.com/gin-gonic/gin"
 )
 
