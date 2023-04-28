@@ -55,6 +55,7 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			user = u
 			ip, _, _ := net.SplitHostPort(w.RemoteAddr().String())
 			if err := d.recorder.Record(sid, OOBRecord{
+				Sid:        sid,
 				Type:       OOBDNS,
 				Name:       dnsName,
 				RemoteAddr: ip,

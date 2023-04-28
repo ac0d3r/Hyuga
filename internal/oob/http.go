@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 	"time"
 
 	"github.com/ac0d3r/hyuga/internal/config"
@@ -25,19 +24,21 @@ func NewHTTP(cnf *config.DNS, recorder *record.Recorder) *HTTP {
 func (h *HTTP) Record(c *gin.Context) {
 	host, _, _ := net.SplitHostPort(c.Request.Host)
 	sid := parseSid(host, h.cnf.Main)
+	remote := getRealIP(c.Request)
+	url := c.Request.URL.String()
 
-	logrus.Infof("[oob][http] query '%s' from '%s'", host, getRealIP(c.Request))
-
+	logrus.Infof("[oob][http] request '%s' from '%s'", url, remote)
 	if sid != "" {
 		req, _ := httputil.DumpRequest(c.Request, true)
 		if err := h.recorder.Record(sid, OOBRecord{
+			Sid:        sid,
 			Type:       OOBHTTP,
 			Name:       c.Request.URL.String(),
-			RemoteAddr: getRealIP(c.Request),
+			RemoteAddr: remote,
 			CreatedAt:  time.Now().Unix(),
 			Detail:     map[string]string{"raw": string(req)},
 		}); err != nil {
-			logrus.Warnf("[http] set record %s %#v error: %s", sid, c.Request.URL.String(), err)
+			logrus.Warnf("[http] set record %s %#v error: %s", sid, url, err)
 		}
 	}
 
@@ -52,5 +53,6 @@ func getRealIP(r *http.Request) string {
 	if ip == "" {
 		ip = r.RemoteAddr
 	}
-	return strings.Split(ip, ":")[0]
+	host, _, _ := net.SplitHostPort(ip)
+	return host
 }

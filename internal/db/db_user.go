@@ -22,8 +22,8 @@ type User struct {
 	Notify Notify `json:"notify"`
 }
 
-// TODO
 type Notify struct {
+	Enable   bool `json:"enable"`
 	Dingtalk struct {
 		Token  string `json:"token"`
 		Secret string `json:"secret"`

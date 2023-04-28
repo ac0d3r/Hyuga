@@ -53,6 +53,7 @@ const (
 )
 
 type OOBRecord struct {
+	Sid        string            `json:"sid"`
 	Type       int               `json:"type"`
 	Name       string            `json:"name"`
 	RemoteAddr string            `json:"remote_addr"`

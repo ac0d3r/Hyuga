@@ -102,6 +102,7 @@ func (j *JNDI) Handle(conn *net.Conn) {
 		sid = j.getSubPath(path)
 		if sid != "" {
 			record = OOBRecord{
+				Sid:  sid,
 				Type: OOBLDAP,
 				Name: path,
 			}
@@ -151,6 +152,7 @@ func (j *JNDI) Handle(conn *net.Conn) {
 		sid = j.getSubPath(path)
 		if sid != "" {
 			record = OOBRecord{
+				Sid:  sid,
 				Type: OOBRMI,
 				Name: path,
 			}

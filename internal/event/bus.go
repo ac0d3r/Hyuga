@@ -57,19 +57,31 @@ func (e *EventBus) Unsubscribe(s *Subscriber) {
 }
 
 type Subscriber struct {
+	all   bool
 	topic string
-	out   chan interface{}
+	out   chan any
 }
 
 func NewSubscriber(topic string) *Subscriber {
-	return &Subscriber{topic: topic,
-		out: make(chan any, 1e2)}
+	all := false
+	if len(topic) == 0 || strings.EqualFold(topic, "*") {
+		all = true
+	}
+
+	return &Subscriber{
+		all:   all,
+		topic: topic,
+		out:   make(chan any, 1e3)}
 }
 
-func (s *Subscriber) Out() <-chan interface{} {
+func (s *Subscriber) Out() <-chan any {
 	return s.out
 }
 
 func (s *Subscriber) Has(topic string) bool {
+	if s.all {
+		return true
+	}
+
 	return strings.EqualFold(s.topic, topic)
 }
