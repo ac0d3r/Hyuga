@@ -30,9 +30,9 @@ func (h *HTTP) Record(c *gin.Context) {
 	logrus.Infof("[oob][http] request '%s' from '%s'", url, remote)
 	if sid != "" {
 		req, _ := httputil.DumpRequest(c.Request, true)
-		if err := h.recorder.Record(sid, OOBRecord{
+		if err := h.recorder.Record(sid, Record{
 			Sid:        sid,
-			Type:       OOBHTTP,
+			Type:       TypeHTTP,
 			Name:       c.Request.URL.String(),
 			RemoteAddr: remote,
 			CreatedAt:  time.Now().Unix(),

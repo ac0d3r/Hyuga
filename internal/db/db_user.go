@@ -23,15 +23,27 @@ type User struct {
 }
 
 type Notify struct {
-	Enable   bool `json:"enable"`
+	Enable bool `json:"enable"`
+	Bark   struct {
+		Key    string `json:"key"`
+		Server string `json:"server"`
+	} `json:"bark"`
 	Dingtalk struct {
 		Token  string `json:"token"`
 		Secret string `json:"secret"`
 	} `json:"dingtalk"`
-	Bark struct {
+	Lark struct {
 		Token  string `json:"token"`
 		Secret string `json:"secret"`
-	} `json:"bark"`
+	} `json:"lark"`
+	Feishu struct {
+		Token  string `json:"token"`
+		Secret string `json:"secret"`
+	} `json:"feishu"`
+	ServerChan struct {
+		UserID  string `json:"user_id"`
+		SendKey string `json:"send_key"`
+	} `json:"server_chan"`
 }
 
 type GithubUserInfo struct {

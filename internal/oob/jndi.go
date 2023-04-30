@@ -78,7 +78,7 @@ func (j *JNDI) Handle(conn *net.Conn) {
 
 	var (
 		sid    string
-		record OOBRecord
+		record Record
 	)
 	hexStr := fmt.Sprintf("%x", buf[:num])
 	// LDAP Protocol
@@ -101,9 +101,9 @@ func (j *JNDI) Handle(conn *net.Conn) {
 		path := pathBytes.String()
 		sid = j.getSubPath(path)
 		if sid != "" {
-			record = OOBRecord{
+			record = Record{
 				Sid:  sid,
-				Type: OOBLDAP,
+				Type: TypeLDAP,
 				Name: path,
 			}
 		}
@@ -151,9 +151,9 @@ func (j *JNDI) Handle(conn *net.Conn) {
 		path := pathBytes.String()
 		sid = j.getSubPath(path)
 		if sid != "" {
-			record = OOBRecord{
+			record = Record{
 				Sid:  sid,
-				Type: OOBRMI,
+				Type: TypeRMI,
 				Name: path,
 			}
 		}

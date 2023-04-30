@@ -46,15 +46,32 @@ func Run(ctx context.Context,
 }
 
 const (
-	OOBDNS = iota
-	OOBHTTP
-	OOBLDAP
-	OOBRMI
+	TypeDNS RecordType = iota
+	TypeHTTP
+	TypeLDAP
+	TypeRMI
 )
 
-type OOBRecord struct {
+type RecordType uint
+
+func (o RecordType) String() string {
+	switch o {
+	case TypeHTTP:
+		return "http"
+	case TypeDNS:
+		return "dns"
+	case TypeLDAP:
+		return "ldap"
+	case TypeRMI:
+		return "rmi"
+	default:
+		return "unknown"
+	}
+}
+
+type Record struct {
 	Sid        string            `json:"sid"`
-	Type       int               `json:"type"`
+	Type       RecordType        `json:"type"`
 	Name       string            `json:"name"`
 	RemoteAddr string            `json:"remote_addr"`
 	CreatedAt  int64             `json:"created_at"`

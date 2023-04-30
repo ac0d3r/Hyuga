@@ -10,6 +10,7 @@ import (
 	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/ac0d3r/hyuga/pkg/event"
 	"github.com/ac0d3r/hyuga/pkg/httpx"
+	notifier "github.com/ac0d3r/hyuga/thirdparty/notify"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -36,6 +37,7 @@ func Run(ctx context.Context,
 
 	// notify
 	g.Go(func() error {
+		// subscribe all event
 		s := eventbus.Subscribe("*")
 		defer eventbus.Unsubscribe(s)
 		for {
@@ -43,7 +45,7 @@ func Run(ctx context.Context,
 			case <-ctx.Done():
 				return ctx.Err()
 			case msg := <-s.Out():
-				r, ok := msg.(oob.OOBRecord)
+				r, ok := msg.(oob.Record)
 				if !ok {
 					continue
 				}
@@ -51,8 +53,23 @@ func Run(ctx context.Context,
 
 				u, err := db.GetUserBySid(r.Sid)
 				if err == nil && u != nil && u.Notify.Enable {
-					// TODO: send notify
-					logrus.Infof("[server][notify] TODO msg: %v", r)
+					logrus.Infof("[server][notify] msg: %s-%s", r.Type.String(), r.Name)
+
+					if u.Notify.Bark.Key != "" {
+						notifier.WithBark(u.Notify.Bark.Key, u.Notify.Bark.Server, r.Type.String(), r.Name)
+					}
+					if u.Notify.Dingtalk.Token != "" && u.Notify.Dingtalk.Secret != "" {
+						notifier.WithDingTalk(u.Notify.Dingtalk.Token, u.Notify.Dingtalk.Secret, r.Type.String(), r.Name)
+					}
+					if u.Notify.Lark.Token != "" && u.Notify.Lark.Secret != "" {
+						notifier.WithLark(u.Notify.Lark.Token, u.Notify.Lark.Secret, r.Type.String(), r.Name)
+					}
+					if u.Notify.Feishu.Token != "" && u.Notify.Feishu.Secret != "" {
+						notifier.WithFeishu(u.Notify.Feishu.Token, u.Notify.Feishu.Secret, r.Type.String(), r.Name)
+					}
+					if u.Notify.ServerChan.UserID != "" && u.Notify.ServerChan.SendKey != "" {
+						notifier.WithServerChan(u.Notify.ServerChan.UserID, u.Notify.ServerChan.SendKey, r.Type.String(), r.Name)
+					}
 				}
 			}
 		}
