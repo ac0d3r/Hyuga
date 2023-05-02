@@ -38,8 +38,8 @@ func (w *restfulHandler) login(c *gin.Context) {
 	if BindParam(c, param) {
 		return
 	}
-
 	logrus.Infof("[restful] user login.")
+
 	data, err := json.Marshal(map[string]string{
 		"client_id":     w.cnf.Github.ClientID,
 		"client_secret": w.cnf.Github.ClientSecret,
@@ -81,9 +81,10 @@ func (w *restfulHandler) login(c *gin.Context) {
 		return
 	}
 
+	logrus.Infof("[restful] authorization successful and get user info.")
 	// github user info
 	accessToken := payload["access_token"]
-	info, err := getUserInfo(accessToken)
+	info, err := getGithubUserInfo(accessToken)
 	if err != nil {
 		ReturnError(c, errOauth, err)
 		return
@@ -116,13 +117,13 @@ func (w *restfulHandler) login(c *gin.Context) {
 		}
 	}
 
-	// TODO
-	c.SetCookie("sid", u.Sid, 0, "/", "", false, true)
-	c.SetCookie("token", u.Token, 0, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/api/v2/user/info")
+	logrus.Infof("[restful] login success.")
+	setCookie(c, "sid", u.Sid)
+	setCookie(c, "token", u.Token)
+	c.Redirect(http.StatusFound, "/")
 }
 
-func getUserInfo(token string) (*db.GithubUserInfo, error) {
+func getGithubUserInfo(token string) (*db.GithubUserInfo, error) {
 	req, err := http.NewRequest("GET", githubUser, nil)
 	if err != nil {
 		return nil, err
@@ -152,7 +153,19 @@ func getUserInfo(token string) (*db.GithubUserInfo, error) {
 }
 
 func (w *restfulHandler) info(c *gin.Context) {
+	user, err := w.db.GetUserBySid(c.GetString("sid"))
+	if err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
 
+	ReturnJSON(c, map[string]any{
+		"name":       user.Name,
+		"sid":        user.Sid,
+		"avatar_url": user.Avatar,
+		"api_token":  user.APIToken,
+		"notify":     user.Notify,
+	})
 }
 
 var upgrader = websocket.Upgrader{
@@ -196,14 +209,88 @@ func (w *restfulHandler) record(c *gin.Context) {
 	}()
 }
 
-func (w *restfulHandler) setInfo(c *gin.Context) {
+func (w *restfulHandler) notify(c *gin.Context) {
+	type Request struct {
+		Enable bool `json:"enable" form:"enable"`
+		Bark   struct {
+			Key    string `json:"key" form:"key"`
+			Server string `json:"server" form:"server"`
+		} `json:"bark" form:"bark"`
+		Dingtalk struct {
+			Token  string `json:"token" form:"token"`
+			Secret string `json:"secret" form:"secret"`
+		} `json:"dingtalk" form:"dingtalk"`
+		Lark struct {
+			Token  string `json:"token" form:"token"`
+			Secret string `json:"secret" form:"secret"`
+		} `json:"lark" form:"lark"`
+		Feishu struct {
+			Token  string `json:"token" form:"token"`
+			Secret string `json:"secret" form:"secret"`
+		} `json:"feishu" form:"feishu"`
+		ServerChan struct {
+			UserID  string `json:"user_id" form:"user_id"`
+			SendKey string `json:"send_key" form:"send_key"`
+		} `json:"server_chan" form:"server_chan"`
+	}
 
+	param := new(Request)
+	if BindParam(c, param) {
+		return
+	}
+
+	user, err := w.db.GetUserBySid(c.GetString("sid"))
+	if err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+	user.Notify.Enable = param.Enable
+	user.Notify.Bark.Key = param.Bark.Key
+	user.Notify.Bark.Server = param.Bark.Server
+	user.Notify.Dingtalk.Token = param.Dingtalk.Token
+	user.Notify.Dingtalk.Secret = param.Dingtalk.Secret
+	user.Notify.Lark.Token = param.Lark.Token
+	user.Notify.Lark.Secret = param.Lark.Secret
+	user.Notify.Feishu.Token = param.Feishu.Token
+	user.Notify.Feishu.Secret = param.Feishu.Secret
+	user.Notify.ServerChan.UserID = param.ServerChan.UserID
+	user.Notify.ServerChan.SendKey = param.ServerChan.SendKey
+
+	if err := w.db.UpdateUser(user); err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+	ReturnJSON(c, nil)
 }
 
-func (w *restfulHandler) resetToken(c *gin.Context) {
+func (w *restfulHandler) reset(c *gin.Context) {
+	user, err := w.db.GetUserBySid(c.GetString("sid"))
+	if err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
 
+	user.APIToken = db.GenUserToken()
+	if err := w.db.UpdateUser(user); err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+
+	ReturnJSON(c, nil)
 }
 
 func (w *restfulHandler) logout(c *gin.Context) {
+	user, err := w.db.GetUserBySid(c.GetString("sid"))
+	if err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
 
+	user.Token = ""
+	if err := w.db.UpdateUser(user); err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+
+	ReturnJSON(c, nil)
 }

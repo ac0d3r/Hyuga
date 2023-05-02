@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"embed"
+	"io/fs"
 	"net"
 	"net/http"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/ac0d3r/hyuga/pkg/event"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,22 +40,44 @@ func NewRESTfulHandler(db *db.DB,
 	}
 }
 
+//go:embed dist
+var dist embed.FS
+
+type embedFileSystem struct {
+	http.FileSystem
+}
+
+func (e embedFileSystem) Exists(prefix string, path string) bool {
+	_, err := e.Open(path)
+	return err == nil
+}
+
+func EmbedFolder(fsEmbed embed.FS, targetPath string) static.ServeFileSystem {
+	fsys, err := fs.Sub(fsEmbed, targetPath)
+	if err != nil {
+		panic(err)
+	}
+	return embedFileSystem{
+		FileSystem: http.FS(fsys),
+	}
+}
+
 func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
-	g.Use(r.oobHttp())
+	g.Use(r.oobHttp())                                  // oob http log
+	g.Use(static.Serve("/", EmbedFolder(dist, "dist"))) // static file
 	g.NoRoute(func(c *gin.Context) { c.Status(http.StatusNotFound) })
 
-	api := g.Group("/api/v2")
-	api.GET("/login", r.login)
+	v2 := g.Group("/api/v2")
+	v2.GET("/login", r.login)
 
-	user := api.Group("user")
+	user := v2.Group("user")
 	user.Use(r.userToken())
 	{
-		// TODO
-		user.GET("/info", r.info)
-		user.Any("/record", r.record)
-		user.POST("/info", r.setInfo)
-		user.POST("/reset_token", r.resetToken)
-		user.POST("/logout", r.logout)
+		user.GET("/info", r.info)      // get user info
+		user.Any("/record", r.record)  // stream record
+		user.POST("/notify", r.notify) // set user notify
+		user.POST("/reset", r.reset)   // reset user api token
+		user.POST("/logout", r.logout) // logout
 	}
 }
 

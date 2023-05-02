@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
+	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.9.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/golang-lru/v2 v2.0.2
