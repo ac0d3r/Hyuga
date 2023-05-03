@@ -20,7 +20,7 @@ func Run(ctx context.Context,
 	g *errgroup.Group,
 	db *db.DB,
 	cnf *config.Web,
-	dns *config.DNS,
+	oob_ *config.OOB,
 	eventbus *event.EventBus,
 	recorder *record.Recorder,
 ) {
@@ -30,7 +30,7 @@ func Run(ctx context.Context,
 	g.Go(func() error {
 		logrus.Infof("[server] web listen at '%s'", cnf.Address)
 		web := httpx.NewBaseGinServer(
-			handler.NewRESTfulHandler(db, cnf, dns, eventbus, recorder).RegisterHandler)
+			handler.NewRESTfulHandler(db, cnf, oob_, eventbus, recorder).RegisterHandler)
 
 		return web.Start(ctx, false, cnf.Address)
 	})

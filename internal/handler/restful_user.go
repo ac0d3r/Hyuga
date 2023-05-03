@@ -5,7 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 
 	"github.com/ac0d3r/hyuga/internal/db"
@@ -159,12 +161,18 @@ func (w *restfulHandler) info(c *gin.Context) {
 		return
 	}
 
+	_, port, _ := net.SplitHostPort(w.oob.JNDI.Address)
 	ReturnJSON(c, map[string]any{
-		"name":       user.Name,
-		"sid":        user.Sid,
-		"avatar_url": user.Avatar,
-		"api_token":  user.APIToken,
-		"notify":     user.Notify,
+		"name":   user.Name,
+		"avatar": user.Avatar,
+		"sid":    user.Sid,
+		"token":  user.APIToken,
+		"data": map[string]string{
+			"subdomain": fmt.Sprintf("%s.%s", user.Sid, w.oob.DNS.Main),
+			"ldap":      fmt.Sprintf("ldap://%s:%s/%s/", w.oob.DNS.Main, port, user.Sid),
+			"rmi":       fmt.Sprintf("rmi://%s:%s/%s/", w.oob.DNS.Main, port, user.Sid),
+		},
+		"notify": user.Notify,
 	})
 }
 

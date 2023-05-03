@@ -59,7 +59,7 @@ func (a *App) Run() (err error) {
 		}
 	})
 
-	server.Run(ctx, g, a.db, a.cnf.Web, &a.cnf.OOB.DNS, a.eventbus, a.recorder)
+	server.Run(ctx, g, a.db, a.cnf.Web, a.cnf.OOB, a.eventbus, a.recorder)
 	oob.Run(ctx, g, a.db, a.cnf.OOB, a.recorder)
 
 	err = g.Wait()

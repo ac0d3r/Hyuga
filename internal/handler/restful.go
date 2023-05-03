@@ -18,7 +18,7 @@ import (
 type restfulHandler struct {
 	db       *db.DB
 	cnf      *config.Web
-	dns      *config.DNS
+	oob      *config.OOB
 	eventbus *event.EventBus
 	recorder *record.Recorder
 }
@@ -27,14 +27,14 @@ var _ Register = (*restfulHandler)(nil)
 
 func NewRESTfulHandler(db *db.DB,
 	cnf *config.Web,
-	dns *config.DNS,
+	oob *config.OOB,
 	eventbus *event.EventBus,
 	recorder *record.Recorder) Register {
 
 	return &restfulHandler{
 		db:       db,
 		cnf:      cnf,
-		dns:      dns,
+		oob:      oob,
 		eventbus: eventbus,
 		recorder: recorder,
 	}
@@ -82,11 +82,11 @@ func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
 }
 
 func (r *restfulHandler) oobHttp() gin.HandlerFunc {
-	httplog := oob.NewHTTP(r.dns, r.recorder)
+	httplog := oob.NewHTTP(&r.oob.DNS, r.recorder)
 
 	return func(c *gin.Context) {
 		host, _, _ := net.SplitHostPort(c.Request.Host)
-		if host != r.dns.Main {
+		if host != r.oob.DNS.Main {
 			httplog.Record(c)
 			c.Abort()
 		}
