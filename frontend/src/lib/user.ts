@@ -61,7 +61,7 @@ function logout() {
         });
 }
 
-function getUserInfo() {
+function getUserInfo(succcallback: Function) {
     fetch(`${apihost}/api/v2/user/info`, { method: "GET" })
         .then((res) => res.json())
         .then((res) => {
@@ -71,6 +71,7 @@ function getUserInfo() {
             } else {
                 // update user info
                 store.state.user = data;
+                succcallback();
             }
         }).catch((err) => {
             fail(err.message);
@@ -87,7 +88,7 @@ function setNotify(notify: any) {
         .then((res) => {
             const { code, msg, _ } = res;
             if (code === 0) {
-                // TODO
+                getUserInfo(() => { });
                 succ('set notify success');
             } else {
                 warn(msg);
@@ -97,12 +98,15 @@ function setNotify(notify: any) {
         });
 }
 
-function resetToken() {
+function resetToken(succcallback: Function) {
     fetch(`${apihost}/api/v2/user/reset`, { method: "POST" })
         .then((res) => res.json())
         .then((res) => {
             const { code, msg, data } = res;
-            if (code !== 0) {
+            if (code === 0) {
+                getUserInfo(succcallback);
+                succ('reset token success');
+            } else {
                 warn(msg);
             }
         }).catch((err) => {

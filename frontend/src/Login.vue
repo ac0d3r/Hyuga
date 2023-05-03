@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { isLogin, githubOauth, logout, getUserInfo } from "./lib/user";
 import { useStore } from "./lib/store";
+import { isLogin, githubOauth, logout, getUserInfo } from "./lib/user";
 
 const store = useStore();
 store.state.logged = isLogin();
 if (store.state.logged) {
-    getUserInfo();
+    getUserInfo(() => { });
 }
 
 const action = () => {

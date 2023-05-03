@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { Ref, ref } from "vue";
-import { User, UserFilled, Key, Link, Tools, CopyDocument, View, Hide } from '@element-plus/icons-vue';
+import { User, UserFilled, Key, Link, Tools, CopyDocument, View, Hide, Refresh, InfoFilled, SuccessFilled } from '@element-plus/icons-vue';
 import useClipboard from 'vue-clipboard3';
 import { useStore } from "./lib/store";
+import { resetToken, setNotify } from "./lib/user";
 
 const store = useStore();
 // user info
@@ -29,7 +30,21 @@ const copy = async (data: string) => {
     } catch (e) {
     }
 }
-
+// setting
+const opened = ref(false);
+const reset = () => {
+    resetToken(
+        () => {
+            if (!hides) {
+                token.value = store.state.user.token;
+            }
+        }
+    );
+};
+const confirm = () => {
+    setNotify(store.state.user.notify);
+};
+// records
 const records: Ref<any[]> = ref([]);
 </script>
 
@@ -43,8 +58,10 @@ const records: Ref<any[]> = ref([]);
                             <el-icon>
                                 <UserFilled />
                             </el-icon>
+                            Profile
                         </el-text>
-                        <el-button :icon="Tools" text />
+                        <!-- <el-button :icon="Tools" text @click="store.state.logged ? opened = true : opened = false" /> -->
+                        <el-button :icon="Tools" text @click="opened = true" />
                     </div>
                 </template>
                 <el-descriptions v-if="store.state.logged" :column="1" size="small" direction="horizontal">
@@ -119,6 +136,64 @@ const records: Ref<any[]> = ref([]);
             </el-table>
         </el-space>
     </div>
+
+    <!-- settting  -->
+    <el-drawer v-model="opened" title="Settings" direction="rtl">
+        <el-form>
+            <el-popconfirm width="300" title="Are you sure to reset the API token?" confirm-button-text="Yes"
+                cancel-button-text="No" :icon="InfoFilled" icon-color="#626AEF" @confirm="reset">
+                <template #reference>
+                    <el-button type="primary" :icon="Refresh">Reset Token</el-button>
+                </template>
+            </el-popconfirm>
+            <el-divider />
+            <el-form-item label="Enable">
+                <el-switch v-model="store.state.user.notify.enable"
+                    style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
+            </el-form-item>
+
+            <el-text>Bark</el-text>
+            <el-form-item label="Key" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.bark.key" placeholder="Bark Key" />
+            </el-form-item>
+            <el-form-item label="Server" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.bark.server" placeholder="Bark Server" />
+            </el-form-item>
+
+            <el-text>DingTalk</el-text>
+            <el-form-item label="Token" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.dingtalk.token" placeholder="DingTalk Key" />
+            </el-form-item>
+            <el-form-item label="Secret" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.dingtalk.secret" placeholder="DingTalk Secret" />
+            </el-form-item>
+
+            <el-text>Lark</el-text>
+            <el-form-item label="Token" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.lark.token" placeholder="Lark Key" />
+            </el-form-item>
+            <el-form-item label="Secret" style="margin-left: 12px;">
+                <el-input v-model="store.state.user.notify.lark.secret" placeholder="Lark Secret" />
+            </el-form-item>
+
+            <el-text>Feishu</el-text>
+            <el-form-item label="Token" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.feishu.token" placeholder="Feishu Key" />
+            </el-form-item>
+            <el-form-item label="Secret" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.feishu.secret" placeholder="Feishu Secret" />
+            </el-form-item>
+
+            <el-text>ServerChan</el-text>
+            <el-form-item label="UserID" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.serverchan.user_id" placeholder="ServerChan UserID" />
+            </el-form-item>
+            <el-form-item label="SendKey" style="margin-left:12px;">
+                <el-input v-model="store.state.user.notify.serverchan.send_key" placeholder="ServerChan SendKey" />
+            </el-form-item>
+            <el-button type="primary" :icon="SuccessFilled" style="float: right;" @click="confirm">Confrim</el-button>
+        </el-form>
+    </el-drawer>
 </template>
 
 <style>

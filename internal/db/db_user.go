@@ -43,7 +43,7 @@ type Notify struct {
 	ServerChan struct {
 		UserID  string `json:"user_id"`
 		SendKey string `json:"send_key"`
-	} `json:"server_chan"`
+	} `json:"serverchan"`
 }
 
 type GithubUserInfo struct {
