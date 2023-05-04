@@ -46,10 +46,53 @@ const confirm = () => {
 };
 // records
 const records: Ref<any[]> = ref([]);
+const ws = new WebSocket(`ws://${window.location.host}/api/v2/user/record`)
+ws.onmessage = (msg: any) => {
+    records.value.push(JSON.parse(msg.data));
+}
+const typeTag = (type: number) => {
+    if (type == 0) {
+        return '';
+    } else if (type == 1) {
+        return 'success';
+    } else if (type == 2) {
+        return 'warning';
+    } else if (type == 3) {
+        return 'danger';
+    }
+    return 'info';
+}
+const strTag = (type: number) => {
+    if (type == 0) {
+        return 'dns';
+    } else if (type == 1) {
+        return 'http';
+    } else if (type == 2) {
+        return 'ldap';
+    } else if (type == 3) {
+        return 'rmi';
+    }
+    return 'unknown';
+}
+const parseDetail = (detail: any): any => {
+    if (detail !== null && detail.raw !== null) {
+        let lines = [];
+        for (let line of detail.raw.split('\r\n')) {
+            if (line !== '')
+                lines.push(line);
+        }
+        return lines;
+    }
+    return null;
+}
+const parseTime = (time: number): string => {
+    const date = new Date(time * 1000);
+    return date.toLocaleString();
+}
 </script>
 
 <template>
-    <div style="text-align: center; ">
+    <div style="text-align: center;">
         <el-space direction="vertical">
             <el-card shadow="always" style="width: 500px;">
                 <template #header>
@@ -60,8 +103,7 @@ const records: Ref<any[]> = ref([]);
                             </el-icon>
                             Profile
                         </el-text>
-                        <!-- <el-button :icon="Tools" text @click="store.state.logged ? opened = true : opened = false" /> -->
-                        <el-button :icon="Tools" text @click="opened = true" />
+                        <el-button :icon="Tools" text @click="store.state.logged ? opened = true : opened = false" />
                     </div>
                 </template>
                 <el-descriptions v-if="store.state.logged" :column="1" size="small" direction="horizontal">
@@ -121,15 +163,28 @@ const records: Ref<any[]> = ref([]);
             </el-empty>
             <el-table v-else :data="records" height="550" stripe table-layout="fixed" max-height="550"
                 style="width: 1000px;">
-                <el-table-column prop="type" label="Type" />
+                <el-table-column prop="type" label="Type">
+                    <template #default="scope">
+                        <el-tag :type="typeTag(scope.row.type)" disable-transitions>{{ strTag(scope.row.type)
+                        }}</el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="name" label="Name" />
                 <el-table-column prop="remote_addr" label="RemoteAddr" />
-                <el-table-column prop="created_at" label="CreatedAt" />
+                <el-table-column prop="created_at" label="CreatedAt">
+                    <template #default="scope">
+                        {{ parseTime(scope.row.created_at) }}
+                    </template>
+                </el-table-column>
                 <el-table-column type="expand">
                     <template #default="props">
                         <div m="4">
-                            <h3>Detail</h3>
-                            <p m="t-0 b-2">{{ props.row.detail }}</p>
+                            <h4>Detail</h4>
+                            <el-row>
+                                <el-col v-for="line in parseDetail(props.row.detail)" :span="16">
+                                    <el-text size="small">{{ line }}</el-text>
+                                </el-col>
+                            </el-row>
                         </div>
                     </template>
                 </el-table-column>
@@ -138,15 +193,17 @@ const records: Ref<any[]> = ref([]);
     </div>
 
     <!-- settting  -->
-    <el-drawer v-model="opened" title="Settings" direction="rtl">
+    <el-drawer v-model="opened" title="Settings" direction="rtl" size="small">
         <el-form>
-            <el-popconfirm width="300" title="Are you sure to reset the API token?" confirm-button-text="Yes"
-                cancel-button-text="No" :icon="InfoFilled" icon-color="#626AEF" @confirm="reset">
-                <template #reference>
-                    <el-button type="primary" :icon="Refresh">Reset Token</el-button>
-                </template>
-            </el-popconfirm>
-            <el-divider />
+            <el-form-item label="Token">
+                <el-popconfirm width="300" title="Are you sure to reset the API token?" confirm-button-text="Yes"
+                    cancel-button-text="No" :icon="InfoFilled" icon-color="#626AEF" @confirm="reset">
+                    <template #reference>
+                        <el-button type="primary" :icon="Refresh">Reset</el-button>
+                    </template>
+                </el-popconfirm>
+            </el-form-item>
+            <el-divider content-position="left">Notify Setting</el-divider>
             <el-form-item label="Enable">
                 <el-switch v-model="store.state.user.notify.enable"
                     style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />

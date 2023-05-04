@@ -31,7 +31,6 @@ const fail = (msg: string) => {
     });
 };
 
-const host = window.location.hostname;
 const apihost: string = function () {
     return `${window.location.protocol}//${window.location.host}`;
 }();
@@ -116,7 +115,6 @@ function resetToken(succcallback: Function) {
 
 
 export {
-    host,
     isLogin,
     githubOauth,
     logout,

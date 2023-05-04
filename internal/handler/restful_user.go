@@ -199,7 +199,18 @@ func (w *restfulHandler) record(c *gin.Context) {
 				close(c)
 			}
 		}()
-
+		// get user all records
+		records, err := w.recorder.Get(sid)
+		if err != nil {
+			logrus.Warnf("[restful] get user records err: %s", err.Error())
+			return
+		}
+		for _, r := range records {
+			if err = ws.WriteJSON(r); err != nil {
+				logrus.Infof("[restful][stream] push record err: %s", err.Error())
+			}
+		}
+		// subscribe user record event
 		s := w.eventbus.Subscribe(sid)
 		defer w.eventbus.Unsubscribe(s)
 		for {

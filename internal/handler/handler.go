@@ -95,5 +95,5 @@ func ReturnUnauthorized(c *gin.Context, code errCode, err ...error) {
 var cookieExpireTime = 3600 * 24 * 7
 
 func setCookie(c *gin.Context, key, value string) {
-	c.SetCookie(key, value, cookieExpireTime, "/", "", true, false)
+	c.SetCookie(key, value, cookieExpireTime, "/", "", false, false)
 }

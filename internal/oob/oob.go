@@ -56,10 +56,10 @@ type RecordType uint
 
 func (o RecordType) String() string {
 	switch o {
-	case TypeHTTP:
-		return "http"
 	case TypeDNS:
 		return "dns"
+	case TypeHTTP:
+		return "http"
 	case TypeLDAP:
 		return "ldap"
 	case TypeRMI:
