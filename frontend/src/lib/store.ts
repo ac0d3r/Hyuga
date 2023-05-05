@@ -2,6 +2,7 @@ import { InjectionKey } from 'vue';
 import { createStore, useStore as baseUseStore, Store } from 'vuex';
 
 export interface State {
+    githubOauth: string,
     logged: boolean
     sid: string
     token: string
@@ -47,6 +48,7 @@ export const key: InjectionKey<Store<State>> = Symbol();
 
 export const store = createStore<State>({
     state: {
+        githubOauth: '',
         logged: false,
         sid: '',
         token: '',

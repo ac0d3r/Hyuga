@@ -31,6 +31,10 @@ var (
 	}
 )
 
+func (w *restfulHandler) githuboauth(c *gin.Context) {
+	ReturnJSON(c, fmt.Sprintf("https://github.com/login/oauth/authorize?scope=user:email&client_id=%s", w.cnf.Github.ClientID))
+}
+
 func (w *restfulHandler) login(c *gin.Context) {
 	type Request struct {
 		Code string `json:"code" form:"code" binding:"required"`

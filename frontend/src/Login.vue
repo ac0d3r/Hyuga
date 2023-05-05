@@ -8,12 +8,15 @@ if (store.state.logged) {
     getUserInfo(() => { });
 }
 
+if (store.state.githubOauth == "" || store.state.githubOauth == null) {
+    githubOauth();
+}
 const action = () => {
     if (store.state.logged) {
         logout();
     } else {
         // login with github oauth
-        location.href = githubOauth;
+        location.href = store.state.githubOauth;
     }
 }
 </script>

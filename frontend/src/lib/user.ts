@@ -4,11 +4,6 @@ import { store } from "./store";
 
 const { cookies } = useCookies();
 
-// CUSTOM: 自定义部署，需修改 github client_id
-const client_id = "";
-const githubOauth = `https://github.com/login/oauth/authorize?scope=user:email&client_id=${client_id}`;
-
-
 // message
 const succ = (msg: string) => {
     ElMessage({
@@ -35,10 +30,23 @@ const apihost: string = function () {
     return `${window.location.protocol}//${window.location.host}`;
 }();
 
-
-
 function isLogin(): boolean {
     return cookies.get("sid") !== null && cookies.get("token") !== null;
+}
+
+function githubOauth() {
+    fetch(`${apihost}/api/v2/githuboauth`, { method: "GET" })
+        .then((res) => res.json())
+        .then((res) => {
+            const { code, msg, data } = res;
+            if (code === 0) {
+                store.state.githubOauth = data;
+            } else {
+                warn(msg);
+            }
+        }).catch((err) => {
+            fail(err.message);
+        });
 }
 
 function logout() {

@@ -20,8 +20,6 @@ import Home from './Home.vue';
             <Home />
         </el-main>
 
-
-
         <el-footer class="footer">
             <el-space direction="vertical">
                 <el-text size="small">
