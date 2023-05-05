@@ -41,6 +41,9 @@ DEMO 主页：TODO
 - 支持第三方推送到Bark、Lark、钉钉、飞书、Sever酱。
     - thx: https://github.com/moonD4rk/notifier
 
+### 🔦 单文件部署
+- github action 自动发布 [Releases](https://github.com/ac0d3r/Hyuga/releases)
+
 ### 🚀 查询 API
 - `GET` - `http://{hyuga.io}/api/v2/record/all?token={token}&type={type}&filter={filter}`
     - `type`: 查询类型 `dns|http|ldap|rmi`
