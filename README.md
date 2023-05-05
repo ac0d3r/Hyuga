@@ -1,5 +1,5 @@
 <div align="center" >
-    <img src="./docs/hyuga.png" width="280" alt="Hyuga" />
+    <img src="./docs/hyuga.png" width="200" alt="Hyuga" />
 </div>
 <p align="center">
     <a href="https://github.com/ac0d3r/Hyuga">
@@ -16,7 +16,6 @@
 
 Hyuga 是一个用来监控带外(Out-of-Band)流量的工具。🪤
 
----
 ## 🎉 项目简介
 
 DEMO 主页：TODO
@@ -43,7 +42,7 @@ DEMO 主页：TODO
     - thx: https://github.com/moonD4rk/notifier
 
 ### 🚀 查询 API
-- `GET` - `http://{hyuga.io}/api/v2/record/all?type={type}&token={token}&filter={filter}`
+- `GET` - `http://{hyuga.io}/api/v2/record/all?token={token}&type={type}&filter={filter}`
     - `type`: 查询类型 `dns|http|ldap|rmi`
     - `token`: 域名 token
     - `filter`: 过滤字符

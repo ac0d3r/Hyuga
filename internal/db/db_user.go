@@ -76,14 +76,20 @@ func (db *DB) GetUserByGithub(gid int64) (*User, error) {
 	return nil, iter.Error()
 }
 
-func (db *DB) GetUserByToken(token string) (*User, error) {
+func (db *DB) GetUserByToken(token string, withapi bool) (*User, error) {
 	m := &User{}
 	iter := db.NewIterator(util.BytesPrefix(m.pre()), nil)
 	for iter.Next() {
 		u := &User{}
 		if err := u.decode(iter.Value()); err == nil {
-			if u.Token == token {
-				return u, nil
+			if withapi {
+				if u.APIToken == token {
+					return u, nil
+				}
+			} else {
+				if u.Token == token {
+					return u, nil
+				}
 			}
 		}
 	}

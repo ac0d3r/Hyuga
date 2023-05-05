@@ -80,6 +80,10 @@ func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
 		user.POST("/reset", r.reset)         // reset user api token
 		user.POST("/logout", r.logout)       // logout
 	}
+	record := v2.Group("record")
+	{
+		record.GET("/all", r.all) // get all record
+	}
 }
 
 func (r *restfulHandler) oobHttp() gin.HandlerFunc {
@@ -103,7 +107,7 @@ func (r *restfulHandler) userToken() gin.HandlerFunc {
 			return
 		}
 
-		user, err := r.db.GetUserByToken(token)
+		user, err := r.db.GetUserByToken(token, false)
 		if err != nil || user == nil {
 			ReturnUnauthorized(c, errUnauthorizedAccess)
 			c.Abort()
