@@ -13,6 +13,7 @@ import (
 	"github.com/ac0d3r/hyuga/internal/record"
 	"github.com/ac0d3r/hyuga/pkg/limiter"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 type JNDI struct {
@@ -30,31 +31,33 @@ func NewJNDI(db *db.DB, cnf *config.JNDI, recorder *record.Recorder) *JNDI {
 		limit:    limiter.New(cnf.Limit)}
 }
 
-func (j *JNDI) Run(ctx context.Context) error {
+func (j *JNDI) Run(ctx context.Context, g *errgroup.Group) {
 	l, err := net.Listen("tcp", j.cnf.Address)
 	if err != nil {
 		logrus.Warnf("[jndi] listen fail err:%s", err)
-		return err
+		return
 	}
-LOOP:
-	for {
-		select {
-		case <-ctx.Done():
-			break LOOP
-		default:
+
+	g.Go(func() error {
+		<-ctx.Done()
+		logrus.Info("[oob][jndi] shutdown")
+		return l.Close()
+	})
+	g.Go(func() error {
+		for {
 			j.limit.Allow()
 			conn, err := l.Accept()
 			if err != nil {
 				logrus.Warnf("[jndi] listen accept fail err:%s", err)
 				j.limit.Done()
-				continue
+				break
 			}
 			go j.Handle(&conn)
 		}
-	}
-	// wait for all connections to be processed
-	j.limit.Wait()
-	return l.Close()
+		// wait for all connections to be processed
+		j.limit.Wait()
+		return nil
+	})
 }
 
 /*

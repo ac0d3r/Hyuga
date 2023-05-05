@@ -2,6 +2,7 @@ package oob
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/ac0d3r/hyuga/internal/config"
@@ -19,30 +20,41 @@ func Run(ctx context.Context,
 	r *record.Recorder) {
 
 	dns_ := NewDns(db, &cnf.DNS, r)
+	udpServ := &dns.Server{
+		Addr:    ":53",
+		Net:     "udp",
+		Handler: dns_,
+	}
+	tcpServ := &dns.Server{
+		Addr:    ":53",
+		Net:     "tcp",
+		Handler: dns_,
+	}
+
 	g.Go(func() error {
-		udpServ := &dns.Server{
-			Addr:    ":53",
-			Net:     "udp",
-			Handler: dns_,
+		<-ctx.Done()
+		logrus.Info("[dns] shutdown")
+		var err error
+		if e := udpServ.Shutdown(); e != nil {
+			err = fmt.Errorf("dns-udp shutdown err:%s", e.Error())
 		}
+		if e := tcpServ.Shutdown(); e != nil {
+			err = fmt.Errorf("dns-tcp shutdown err:%s", e.Error())
+		}
+		return err
+	})
+	g.Go(func() error {
 		logrus.Infof("[oob] dns is listen at '[%s]%s'", udpServ.Net, udpServ.Addr)
 		return udpServ.ListenAndServe()
 	})
 	g.Go(func() error {
-		tcpServ := &dns.Server{
-			Addr:    ":53",
-			Net:     "tcp",
-			Handler: dns_,
-		}
 		logrus.Infof("[oob] dns is listen at '[%s]%s'", tcpServ.Net, tcpServ.Addr)
 		return tcpServ.ListenAndServe()
 	})
 
 	jndi := NewJNDI(db, &cnf.JNDI, r)
-	g.Go(func() error {
-		logrus.Infof("[oob] jndi listen at '%s'", cnf.JNDI.Address)
-		return jndi.Run(ctx)
-	})
+	logrus.Infof("[oob] jndi listen at '%s'", cnf.JNDI.Address)
+	jndi.Run(ctx, g)
 }
 
 const (

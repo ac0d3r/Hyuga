@@ -43,6 +43,7 @@ func Run(ctx context.Context,
 		for {
 			select {
 			case <-ctx.Done():
+				logrus.Info("[server][notify] shutdown")
 				return ctx.Err()
 			case msg := <-s.Out():
 				r, ok := msg.(oob.Record)

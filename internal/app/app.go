@@ -32,7 +32,6 @@ func New(cnf *config.Config) (*App, error) {
 	}
 
 	e := event.NewEventBus()
-
 	return &App{
 		db:       db_,
 		cnf:      cnf,
