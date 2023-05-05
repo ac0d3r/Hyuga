@@ -10,8 +10,10 @@ export interface State {
         avatar: string,
         sid: string,
         token: string,
+        rebinding: string[],
         data: {
             subdomain: string,
+            rdomain: string,
             ldap: string,
             rmi: string,
         }
@@ -53,8 +55,10 @@ export const store = createStore<State>({
             avatar: '',
             sid: '',
             token: '',
+            rebinding: [],
             data: {
                 subdomain: '',
+                rdomain: '',
                 ldap: '',
                 rmi: '',
             },

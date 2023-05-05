@@ -73,11 +73,12 @@ func (r *restfulHandler) RegisterHandler(g *gin.Engine) {
 	user := v2.Group("user")
 	user.Use(r.userToken())
 	{
-		user.GET("/info", r.info)      // get user info
-		user.Any("/record", r.record)  // stream record
-		user.POST("/notify", r.notify) // set user notify
-		user.POST("/reset", r.reset)   // reset user api token
-		user.POST("/logout", r.logout) // logout
+		user.GET("/info", r.info)            // get user info
+		user.Any("/record", r.record)        // stream record
+		user.POST("/notify", r.notify)       // set user notify
+		user.POST("/rebinding", r.rebinding) // set user rebinding
+		user.POST("/reset", r.reset)         // reset user api token
+		user.POST("/logout", r.logout)       // logout
 	}
 }
 

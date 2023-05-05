@@ -163,12 +163,14 @@ func (w *restfulHandler) info(c *gin.Context) {
 
 	_, port, _ := net.SplitHostPort(w.oob.JNDI.Address)
 	ReturnJSON(c, map[string]any{
-		"name":   user.Name,
-		"avatar": user.Avatar,
-		"sid":    user.Sid,
-		"token":  user.APIToken,
+		"name":      user.Name,
+		"avatar":    user.Avatar,
+		"sid":       user.Sid,
+		"token":     user.APIToken,
+		"rebinding": user.DnsRebind.DNS,
 		"data": map[string]string{
 			"subdomain": fmt.Sprintf("%s.%s", user.Sid, w.oob.DNS.Main),
+			"rdomain":   fmt.Sprintf("r.%s.%s", user.Sid, w.oob.DNS.Main),
 			"ldap":      fmt.Sprintf("ldap://%s:%s/%s/", w.oob.DNS.Main, port, user.Sid),
 			"rmi":       fmt.Sprintf("rmi://%s:%s/%s/", w.oob.DNS.Main, port, user.Sid),
 		},
@@ -282,6 +284,27 @@ func (w *restfulHandler) notify(c *gin.Context) {
 	ReturnJSON(c, nil)
 }
 
+func (w *restfulHandler) rebinding(c *gin.Context) {
+	type Request struct {
+		Rebinding []string `json:"rebinding" form:"rebinding" binding:"required"`
+	}
+	param := new(Request)
+	if BindParam(c, param) {
+		return
+	}
+
+	user, err := w.db.GetUserBySid(c.GetString("sid"))
+	if err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+	user.DnsRebind.DNS = param.Rebinding
+	if err := w.db.UpdateUser(user); err != nil {
+		ReturnError(c, errDatabase, err)
+		return
+	}
+	ReturnJSON(c, nil)
+}
 func (w *restfulHandler) reset(c *gin.Context) {
 	user, err := w.db.GetUserBySid(c.GetString("sid"))
 	if err != nil {

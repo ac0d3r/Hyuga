@@ -87,7 +87,6 @@ function setNotify(notify: any) {
         .then((res) => {
             const { code, msg, _ } = res;
             if (code === 0) {
-                getUserInfo(() => { });
                 succ('set notify success');
             } else {
                 warn(msg);
@@ -113,6 +112,24 @@ function resetToken(succcallback: Function) {
         });
 }
 
+function setRebinding() {
+    fetch(`${apihost}/api/v2/user/rebinding`, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 'rebinding': store.state.user.rebinding }),
+    })
+        .then((res) => res.json())
+        .then((res) => {
+            const { code, msg, _ } = res;
+            if (code === 0) {
+                succ('set rebinding success');
+            } else {
+                warn(msg);
+            }
+        }).catch((err) => {
+            fail(err.message);
+        });
+}
 
 export {
     isLogin,
@@ -120,5 +137,6 @@ export {
     logout,
     getUserInfo,
     setNotify,
-    resetToken
+    resetToken,
+    setRebinding
 };

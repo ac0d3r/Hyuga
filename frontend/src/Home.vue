@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
+import { nextTick, Ref, ref } from "vue";
+import { ElInput, ElMessage } from 'element-plus';
 import { User, UserFilled, Key, Link, Tools, CopyDocument, View, Hide, Refresh, InfoFilled, SuccessFilled } from '@element-plus/icons-vue';
 import useClipboard from 'vue-clipboard3';
 import { useStore } from "./lib/store";
-import { resetToken, setNotify } from "./lib/user";
+import { resetToken, setNotify, setRebinding } from "./lib/user";
+import { validateIP } from "./lib/utils";
 
 const store = useStore();
 // user info
@@ -44,6 +46,35 @@ const reset = () => {
 const confirm = () => {
     setNotify(store.state.user.notify);
 };
+// dns rebinding
+const inputVisible = ref(false);
+const inputValue = ref('');
+const InputRef = ref<InstanceType<typeof ElInput>>();
+const handleDNSClose = (dns: string) => {
+    store.state.user.rebinding.splice(store.state.user.rebinding.indexOf(dns), 1)
+    setRebinding();
+}
+const handleDNSConfirm = () => {
+    if (store.state.user.rebinding == null)
+        store.state.user.rebinding = [];
+
+    if (inputValue.value) {
+        if (validateIP(inputValue.value)) {
+            store.state.user.rebinding.push(inputValue.value);
+            setRebinding();
+        } else {
+            ElMessage({ message: 'invalid ip address', type: 'warning', });
+        }
+    }
+    inputVisible.value = false;
+    inputValue.value = '';
+}
+const showInput = () => {
+    inputVisible.value = true
+    nextTick(() => {
+        InputRef.value!.input!.focus()
+    })
+}
 // records
 const records: Ref<any[]> = ref([]);
 const ws = new WebSocket(`ws://${window.location.host}/api/v2/user/record`)
@@ -193,8 +224,9 @@ const parseTime = (time: number): string => {
     </div>
 
     <!-- settting  -->
-    <el-drawer v-model="opened" title="Settings" direction="rtl" size="small">
-        <el-form>
+    <el-drawer v-model="opened" title="Settings" direction="rtl">
+        <el-form size="small">
+            <el-divider content-position="left" style="margin-top: 0px;">Token Setting</el-divider>
             <el-form-item label="Token">
                 <el-popconfirm width="300" title="Are you sure to reset the API token?" confirm-button-text="Yes"
                     cancel-button-text="No" :icon="InfoFilled" icon-color="#626AEF" @confirm="reset">
@@ -202,6 +234,24 @@ const parseTime = (time: number): string => {
                         <el-button type="primary" :icon="Refresh">Reset</el-button>
                     </template>
                 </el-popconfirm>
+            </el-form-item>
+            <el-divider content-position="left">DNS Rebinding</el-divider>
+            <el-form-item label="Domain">
+                <el-tag>
+                    {{ store.state.user.data.rdomain }}
+                </el-tag>
+                <el-button text size="small" :icon="CopyDocument" circle @click="copy(store.state.user.data.rdomain)" />
+            </el-form-item>
+            <el-form-item label="DNS">
+                <el-tag v-for="d in store.state.user.rebinding" closable @close="handleDNSClose(d)"
+                    style="margin-right: 5px;">
+                    {{ d }}
+                </el-tag>
+                <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" size="small"
+                    @keyup.enter="handleDNSConfirm" @blur="handleDNSConfirm" />
+                <el-button v-else size="small" @click="showInput">
+                    + New DNS
+                </el-button>
             </el-form-item>
             <el-divider content-position="left">Notify Setting</el-divider>
             <el-form-item label="Enable">
@@ -211,44 +261,46 @@ const parseTime = (time: number): string => {
 
             <el-text>Bark</el-text>
             <el-form-item label="Key" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.bark.key" placeholder="Bark Key" />
+                <el-input v-model="store.state.user.notify.bark.key" />
             </el-form-item>
             <el-form-item label="Server" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.bark.server" placeholder="Bark Server" />
+                <el-input v-model="store.state.user.notify.bark.server" />
             </el-form-item>
 
             <el-text>DingTalk</el-text>
             <el-form-item label="Token" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.dingtalk.token" placeholder="DingTalk Key" />
+                <el-input v-model="store.state.user.notify.dingtalk.token" />
             </el-form-item>
             <el-form-item label="Secret" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.dingtalk.secret" placeholder="DingTalk Secret" />
+                <el-input v-model="store.state.user.notify.dingtalk.secret" />
             </el-form-item>
 
             <el-text>Lark</el-text>
             <el-form-item label="Token" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.lark.token" placeholder="Lark Key" />
+                <el-input v-model="store.state.user.notify.lark.token" />
             </el-form-item>
             <el-form-item label="Secret" style="margin-left: 12px;">
-                <el-input v-model="store.state.user.notify.lark.secret" placeholder="Lark Secret" />
+                <el-input v-model="store.state.user.notify.lark.secret" />
             </el-form-item>
 
             <el-text>Feishu</el-text>
             <el-form-item label="Token" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.feishu.token" placeholder="Feishu Key" />
+                <el-input v-model="store.state.user.notify.feishu.token" />
             </el-form-item>
             <el-form-item label="Secret" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.feishu.secret" placeholder="Feishu Secret" />
+                <el-input v-model="store.state.user.notify.feishu.secret" />
             </el-form-item>
 
             <el-text>ServerChan</el-text>
             <el-form-item label="UserID" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.serverchan.user_id" placeholder="ServerChan UserID" />
+                <el-input v-model="store.state.user.notify.serverchan.user_id" />
             </el-form-item>
             <el-form-item label="SendKey" style="margin-left:12px;">
-                <el-input v-model="store.state.user.notify.serverchan.send_key" placeholder="ServerChan SendKey" />
+                <el-input v-model="store.state.user.notify.serverchan.send_key" />
             </el-form-item>
-            <el-button type="primary" :icon="SuccessFilled" style="float: right;" @click="confirm">Confrim</el-button>
+            <el-form-item style="float: right;">
+                <el-button type="primary" :icon="SuccessFilled" @click="confirm">Confrim</el-button>
+            </el-form-item>
         </el-form>
     </el-drawer>
 </template>
