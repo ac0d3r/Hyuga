@@ -59,7 +59,7 @@ jobs:
         with:
           go-version: 1.19
           cache: true
-      - run: go build -trimpath -ldflags "-w -s -extldflags '-static'" -o target/${{ matrix.output }}
+      - run: go build -trimpath -ldflags "-w -s -extldflags '-static'" -o target/${{ matrix.output }} cmd/main.go
       - uses: actions/upload-artifact@v2
         with:
           name: target
