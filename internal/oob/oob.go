@@ -3,6 +3,7 @@ package oob
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/ac0d3r/hyuga/internal/config"
@@ -98,4 +99,13 @@ func parseSid(domain, mainDomain string) string {
 
 	pre := strings.Split(strings.Trim(domain[:i], "."), ".")
 	return pre[len(pre)-1]
+}
+
+func SplitHostPort(host string) (h, p string) {
+	i := strings.Index(host, ":")
+	if i < 0 {
+		return host, ""
+	}
+	h, p, _ = net.SplitHostPort(host)
+	return
 }

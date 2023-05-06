@@ -1,7 +1,6 @@
 package oob
 
 import (
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -22,7 +21,7 @@ func NewHTTP(cnf *config.DNS, recorder *record.Recorder) *HTTP {
 }
 
 func (h *HTTP) Record(c *gin.Context) {
-	host, _, _ := net.SplitHostPort(c.Request.Host)
+	host, _ := SplitHostPort(c.Request.Host)
 	sid := parseSid(host, h.cnf.Main)
 	remote := getRealIP(c.Request)
 	url := c.Request.URL.String()
@@ -53,6 +52,6 @@ func getRealIP(r *http.Request) string {
 	if ip == "" {
 		ip = r.RemoteAddr
 	}
-	host, _, _ := net.SplitHostPort(ip)
+	host, _ := SplitHostPort(ip)
 	return host
 }

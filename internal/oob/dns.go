@@ -53,7 +53,7 @@ func (d *Dns) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		u, err := d.db.GetUserBySid(sid)
 		if err == nil && u != nil {
 			user = u
-			ip, _, _ := net.SplitHostPort(w.RemoteAddr().String())
+			ip, _ := SplitHostPort(w.RemoteAddr().String())
 			if err := d.recorder.Record(sid, Record{
 				Sid:        sid,
 				Type:       TypeDNS,

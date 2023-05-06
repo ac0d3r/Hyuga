@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 
 	"github.com/ac0d3r/hyuga/internal/db"
+	"github.com/ac0d3r/hyuga/internal/oob"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -165,7 +165,7 @@ func (w *restfulHandler) info(c *gin.Context) {
 		return
 	}
 
-	_, port, _ := net.SplitHostPort(w.oob.JNDI.Address)
+	_, port := oob.SplitHostPort(w.oob.JNDI.Address)
 	ReturnJSON(c, map[string]any{
 		"name":      user.Name,
 		"avatar":    user.Avatar,

@@ -50,12 +50,10 @@ func Run(ctx context.Context,
 				if !ok {
 					continue
 				}
-				logrus.Infof("[server][notify] eventbus '*' receive msg: %v", r)
+				logrus.Infof("[server][notify] eventbus '*' receive msg'%s', '%s'", r.Type.String(), r.Name)
 
 				u, err := db.GetUserBySid(r.Sid)
 				if err == nil && u != nil && u.Notify.Enable {
-					logrus.Infof("[server][notify] msg: '%s', '%s'", r.Type.String(), r.Name)
-
 					if u.Notify.Bark.Key != "" {
 						notifier.WithBark(u.Notify.Bark.Key, u.Notify.Bark.Server, r.Type.String(), r.Name)
 					}

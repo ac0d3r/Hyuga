@@ -3,7 +3,6 @@ package handler
 import (
 	"embed"
 	"io/fs"
-	"net"
 	"net/http"
 
 	"github.com/ac0d3r/hyuga/internal/config"
@@ -13,6 +12,7 @@ import (
 	"github.com/ac0d3r/hyuga/pkg/event"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type restfulHandler struct {
@@ -91,7 +91,8 @@ func (r *restfulHandler) oobHttp() gin.HandlerFunc {
 	httplog := oob.NewHTTP(&r.oob.DNS, r.recorder)
 
 	return func(c *gin.Context) {
-		host, _, _ := net.SplitHostPort(c.Request.Host)
+		host, _ := oob.SplitHostPort(c.Request.Host)
+		logrus.Debugf("oobHttp host: %s", host)
 		if host != r.oob.DNS.Main {
 			httplog.Record(c)
 			c.Abort()
