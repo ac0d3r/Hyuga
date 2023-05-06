@@ -22,15 +22,15 @@
 
 [oob]
     [oob.dns]
-        main = "hyuga.io"
+        main = "log.hyuga.icu"
         ip = "1.1.1.1"
-        ns = ["ns1.app.io", "ns2.app.io"]
+        ns = ["ns.hyuga.icu"]
     [oob.jndi]
         address = ":233"
         limit = 1000
 
 [web]
-    address = ":8080"
+    address = "localhost:8080"
     [web.github]
         client-id = ""
         client-secret = ""
