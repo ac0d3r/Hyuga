@@ -77,7 +77,7 @@ const showInput = () => {
 }
 // records
 const records: Ref<any[]> = ref([]);
-const ws = new WebSocket(`ws://${window.location.host}/api/v2/user/record`)
+const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/v2/user/record`)
 ws.onmessage = (msg: any) => {
     records.value.push(JSON.parse(msg.data));
 }
