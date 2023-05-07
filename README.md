@@ -42,8 +42,21 @@ Hyuga 是一个用来监控带外(Out-of-Band)流量的工具。🪤
 ### 🔦 单文件部署
 - github action 自动发布 [Releases](https://github.com/ac0d3r/Hyuga/releases)
 
+### 🔐 支持HTTPS
+1. [安装Caddy](https://caddyserver.com/docs/install)
+2. 配置 `/etc/caddy/Caddyfile` & 重启 `systemctl restart caddy`
+```caddyfile
+// Example
+zznq.hyuga.icu {
+    reverse_proxy localhost:8080
+}
+:80 {
+    reverse_proxy localhost:8080
+}
+```
+
 ### 🚀 查询 API
-- `GET` - `http[s]://{hyuga.io}/api/v2/record/all?token={token}&type={type}&filter={filter}`
+- `GET` - `https://{hyuga.io}/api/v2/record/all?token={token}&type={type}&filter={filter}`
     - `type`: 查询类型 `dns|http|ldap|rmi`
     - `token`: 域名 token
     - `filter`: 过滤字符
