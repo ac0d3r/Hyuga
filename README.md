@@ -73,3 +73,7 @@ zznq.hyuga.icu {
 <img width="420" alt="image" src="https://user-images.githubusercontent.com/26270009/236439602-09e1222f-09b5-4cee-b10b-d8e23b384464.png">
 
 那么查询 `r.b34s.hyuga.io` 时根据访问次数依次返回所设置的dns（无缓存时）：`2.3.3.3` -> `127.0.0.1` -> `2.3.3.3`...
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ac0d3r/Hyuga&type=Date)](https://star-history.com/#ac0d3r/Hyuga&Date)
