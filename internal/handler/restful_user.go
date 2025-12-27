@@ -216,7 +216,7 @@ func (w *restfulHandler) record(c *gin.Context) {
 				logrus.Infof("[restful][stream] push record err: %s", err.Error())
 			}
 		}
-		// subscribe user record event
+		// subscribe user record ev	ent
 		s := w.eventbus.Subscribe(sid)
 		defer w.eventbus.Unsubscribe(s)
 		for {

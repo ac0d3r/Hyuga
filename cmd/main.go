@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	logrus.Infof("hyuga-server build info, build-stamp:%s build-hash:%s", buildstamp, githash)
+	logrus.Infof("build info, build-stamp:%s build-hash:%s", buildstamp, githash)
 
 	app, err := app.New(cnf)
 	if err != nil {

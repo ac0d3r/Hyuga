@@ -42,3 +42,5 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+.vscode/
